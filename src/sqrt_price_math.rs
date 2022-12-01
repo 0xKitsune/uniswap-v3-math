@@ -45,8 +45,25 @@ pub fn get_next_sqrt_price_From_amount_1_rounding_down(
     amount: U256,
     add: bool,
 ) -> U256 {
-    //TODO: update this
-    U256::zero()
+    if add {
+        let quotent = if amount <= 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF {
+            amount.shl(96) / liquidity
+        } else {
+            FullMath::mul_div(amount, 0x1000000000000000000000000, liquidity)
+        };
+
+        (sqrt_price_x_96 +quotent) 
+    } else {
+        let quotent = if amount <= 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF {
+            UnsafeMath::div_rounding_up(amount.shl(96), liquidity)
+        } else {
+            FullMath::mul_div_rounding_up(amount, 0x1000000000000000000000000, liquidity)
+        };
+
+
+        (sqrt_price_x_96 - quotent)
+    }
+   
 }
 
 // returns (uint256 amount0)
