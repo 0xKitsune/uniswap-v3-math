@@ -1,5 +1,13 @@
+use ethers::types::U256;
+
+pub fn mul_mod(a: U256, b: U256, denominator: U256) -> U256 {
+    //TODO: update this
+    U256::zero()
+}
 // returns (uint256 result)
 fn mul_div(a: U256, b: U256, denominator: U256) -> U256 {
+    let mm = mul_mod(a, b, U256::MAX);
+
     //TODO: update this
     U256::zero()
 }
