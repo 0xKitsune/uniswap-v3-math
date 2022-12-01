@@ -1,3 +1,12 @@
+use std::ops::Shl;
+
+use ethers::types::U256;
+
+use crate::{
+    full_math::{mul_div, mul_div_rounding_up},
+    unsafe_math::div_rounding_up,
+};
+
 // returns (uint160 sqrtQX96)
 pub fn get_next_sqrt_price_from_input(
     sqrt_price: U256,
@@ -46,24 +55,30 @@ pub fn get_next_sqrt_price_From_amount_1_rounding_down(
     add: bool,
 ) -> U256 {
     if add {
-        let quotent = if amount <= 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF {
+        let quotent = if amount <= U256::from("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF") {
             amount.shl(96) / liquidity
         } else {
-            FullMath::mul_div(amount, 0x1000000000000000000000000, liquidity)
+            mul_div(
+                amount,
+                U256::from(0x1000000000000000000000000),
+                U256::from(liquidity),
+            )
         };
 
-        (sqrt_price_x_96 +quotent) 
+        sqrt_price_x_96 + quotent
     } else {
-        let quotent = if amount <= 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF {
-            UnsafeMath::div_rounding_up(amount.shl(96), liquidity)
+        let quotent = if amount <= U256::from("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF") {
+            div_rounding_up(amount.shl(96), liquidity)
         } else {
-            FullMath::mul_div_rounding_up(amount, 0x1000000000000000000000000, liquidity)
+            mul_div_rounding_up(
+                amount,
+                U256::from(0x1000000000000000000000000),
+                U256::from(liquidity),
+            )
         };
 
-
-        (sqrt_price_x_96 - quotent)
+        sqrt_price_x_96 - quotent
     }
-   
 }
 
 // returns (uint256 amount0)

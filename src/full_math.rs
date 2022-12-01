@@ -5,14 +5,14 @@ pub fn mul_mod(a: U256, b: U256, denominator: U256) -> U256 {
     U256::zero()
 }
 // returns (uint256 result)
-fn mul_div(a: U256, b: U256, denominator: U256) -> U256 {
+pub fn mul_div(a: U256, b: U256, denominator: U256) -> U256 {
     let mm = mul_mod(a, b, U256::MAX);
 
     //TODO: update this
     U256::zero()
 }
 
-fn mul_div_rounding_up(a: U256, b: U256, denominator: U256) -> U256 {
+pub fn mul_div_rounding_up(a: U256, b: U256, denominator: U256) -> U256 {
     let result = mul_div(a, b, denominator);
 
     if mul_mod(a, b, denominator) > U256::zero() {
