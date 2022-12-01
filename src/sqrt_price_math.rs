@@ -143,7 +143,7 @@ pub fn get_amount_0_delta(
     sqrt_ratio_a_x_96: U256,
     sqrt_ratio_b_x_96: U256,
     liquidity: i128,
-) -> U256 {
+) -> I256 {
     if liquidity < 0 {
         //TODO: This should be returning -result as a I256
         return _get_amount_0_delta(
@@ -161,7 +161,7 @@ pub fn get_amount_1_delta(
     sqrt_ratio_a_x_96: U256,
     sqrt_ratio_b_x_96: U256,
     liquidity: i128,
-) -> U256 {
+) -> I256 {
     if liquidity < 0 {
         //TODO: This should be returning -result as a I256
         return _get_amount_1_delta(
