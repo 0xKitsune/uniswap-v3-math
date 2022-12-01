@@ -8,8 +8,3 @@ pub mod tick_math;
 
 const MIN_TICK: i32 = -887272;
 const MAX_TICK: i32 = 887272;
-
-pub fn mul_mod(a: U256, b: U256, denominator: U256) -> U256 {
-    //TODO: update this
-    U256::zero()
-}
