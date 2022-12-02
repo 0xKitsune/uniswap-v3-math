@@ -153,7 +153,7 @@ pub fn get_amount_0_delta(
     liquidity: i128,
 ) -> I256 {
     if liquidity < 0 {
-        return I256::from_raw(_get_amount_0_delta(
+        return -I256::from_raw(_get_amount_0_delta(
             sqrt_ratio_b_x_96,
             sqrt_ratio_a_x_96,
             -liquidity as i128,
@@ -175,7 +175,7 @@ pub fn get_amount_1_delta(
     liquidity: i128,
 ) -> I256 {
     if liquidity < 0 {
-        return I256::from_raw(_get_amount_1_delta(
+        return -I256::from_raw(_get_amount_1_delta(
             sqrt_ratio_b_x_96,
             sqrt_ratio_a_x_96,
             -liquidity as i128,
