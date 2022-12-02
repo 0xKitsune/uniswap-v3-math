@@ -15,7 +15,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> U256 {
     // variables such that product = prod1 * 2**256 + prod0
     let mm = mul_mod(a, b, U256::MAX);
     let mut prod_0 = a.mul(b); // Least significant 256 bits of the product
-    let mut prod_1 = mm - prod_0 - U256::from(mm < prod_0); // Most significant 256 bits of the product
+    let mut prod_1 = mm - prod_0 - U256::from((mm < prod_0) as u8); // Most significant 256 bits of the product
 
     // Handle non-overflow cases, 256 by 256 division
     if prod_1.is_zero() {
@@ -41,7 +41,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> U256 {
         let remainder = mul_mod(a, b, denominator);
 
         // Subtract 256 bit number from 512 bit number
-        prod_1 = prod_1 - U256::from(remainder > prod_0);
+        prod_1 = prod_1 - U256::from((remainder > prod_0) as u8);
         prod_0 = prod_0 - remainder;
 
         let twos = (U256::zero() - denominator) & denominator;
