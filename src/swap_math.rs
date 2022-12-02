@@ -1,3 +1,5 @@
+use ethers::types::{I256, U256};
+
 // //returns (
 //         uint160 sqrtRatioNextX96,
 //         uint256 amountIn,

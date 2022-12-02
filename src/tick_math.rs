@@ -1,3 +1,7 @@
+use std::ops::{BitAnd, Shr};
+
+use ethers::types::{I256, U256};
+
 const MIN_TICK: i32 = -887272;
 const MAX_TICK: i32 = 887272;
 
