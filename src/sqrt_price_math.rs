@@ -73,7 +73,7 @@ pub fn get_next_sqrt_price_From_amount_1_rounding_down(
         } else {
             mul_div(
                 amount,
-                U256::from(0x1000000000000000000000000),
+                U256::from("0x1000000000000000000000000"),
                 U256::from(liquidity),
             )
         };
@@ -85,7 +85,7 @@ pub fn get_next_sqrt_price_From_amount_1_rounding_down(
         } else {
             mul_div_rounding_up(
                 amount,
-                U256::from(0x1000000000000000000000000),
+                U256::from("0x1000000000000000000000000"),
                 U256::from(liquidity),
             )
         };
@@ -101,41 +101,49 @@ pub fn _get_amount_0_delta(
     liquidity: i128,
     round_up: bool,
 ) -> U256 {
-    let (sqrt_ratio_ax_192, sqrt_ratio_bx_192) = if sqrt_ratio_a_x_96 > sqrt_ratio_b_x_96 {
+    let (sqrt_ratio_a_x_96, sqrt_ratio_b_x_96) = if sqrt_ratio_a_x_96 > sqrt_ratio_b_x_96 {
         (sqrt_ratio_a_x_96, sqrt_ratio_b_x_96)
     } else {
         (sqrt_ratio_b_x_96, sqrt_ratio_a_x_96)
     };
 
     let numerator_1 = U256::from(liquidity).shl(96);
-    let numerator_2 = sqrt_ratio_bx_192 - sqrt_ratio_ax_192;
+    let numerator_2 = sqrt_ratio_a_x_96 - sqrt_ratio_b_x_96;
 
     //TODO: Add require check tyhat sqrtRatioAX96 > 0
     if round_up {
-        let numerator_partial = mul_div_rounding_up(numerator_1, numerator_2, sqrt_ratio_bx_192)
-        return div_rounding_up(numerator_partial, sqrt_ratio_ax_192);
+        let numerator_partial = mul_div_rounding_up(numerator_1, numerator_2, sqrt_ratio_b_x_96);
+        return div_rounding_up(numerator_partial, sqrt_ratio_a_x_96);
     } else {
-        return mul_div(numerator_1, numerator_2, sqrt_ratio_bx_192) / sqrt_ratio_ax_192
+        return mul_div(numerator_1, numerator_2, sqrt_ratio_b_x_96) / sqrt_ratio_a_x_96;
     };
 }
 
 // returns (uint256 amount1)
 pub fn _get_amount_1_delta(
-    sqrt_ratio_a_x_96: U256,
-    sqrt_ratio_b_x_96: U256,
+    mut sqrt_ratio_a_x_96: U256,
+    mut sqrt_ratio_b_x_96: U256,
     liquidity: i128,
     round_up: bool,
 ) -> U256 {
-    let (sqrt_ratio_ax_192, sqrt_ratio_bx_192) = if sqrt_ratio_a_x_96 > sqrt_ratio_b_x_96 {
+    (sqrt_ratio_a_x_96, sqrt_ratio_b_x_96) = if sqrt_ratio_a_x_96 > sqrt_ratio_b_x_96 {
         (sqrt_ratio_a_x_96, sqrt_ratio_b_x_96)
     } else {
         (sqrt_ratio_b_x_96, sqrt_ratio_a_x_96)
     };
 
     if round_up {
-        return mul_div_rounding_up(U256::from(liquidity), sqrt_ratio_b_x_96 - sqrt_ratio_a_x_96, U256::from(0x1000000000000000000000000))
-    }else {
-        return mul_div(U256::from(liquidity), sqrt_ratio_b_x_96 - sqrt_ratio_a_x_96, U256::from(0x1000000000000000000000000))
+        return mul_div_rounding_up(
+            U256::from(liquidity),
+            sqrt_ratio_b_x_96 - sqrt_ratio_a_x_96,
+            U256::from("0x1000000000000000000000000"),
+        );
+    } else {
+        return mul_div(
+            U256::from(liquidity),
+            sqrt_ratio_b_x_96 - sqrt_ratio_a_x_96,
+            U256::from("0x1000000000000000000000000"),
+        );
     }
 }
 
@@ -145,15 +153,19 @@ pub fn get_amount_0_delta(
     liquidity: i128,
 ) -> I256 {
     if liquidity < 0 {
-        //TODO: This should be returning -result as a I256
-        return _get_amount_0_delta(
+        return I256::from_raw(_get_amount_0_delta(
             sqrt_ratio_b_x_96,
             sqrt_ratio_a_x_96,
             -liquidity as i128,
             false,
-        );
+        ));
     } else {
-        return _get_amount_0_delta(sqrt_ratio_a_x_96, sqrt_ratio_b_x_96, liquidity, true);
+        return I256::from_raw(_get_amount_0_delta(
+            sqrt_ratio_a_x_96,
+            sqrt_ratio_b_x_96,
+            liquidity,
+            true,
+        ));
     }
 }
 
@@ -163,14 +175,18 @@ pub fn get_amount_1_delta(
     liquidity: i128,
 ) -> I256 {
     if liquidity < 0 {
-        //TODO: This should be returning -result as a I256
-        return _get_amount_1_delta(
+        return I256::from_raw(_get_amount_1_delta(
             sqrt_ratio_b_x_96,
             sqrt_ratio_a_x_96,
             -liquidity as i128,
             false,
-        );
+        ));
     } else {
-        return _get_amount_1_delta(sqrt_ratio_a_x_96, sqrt_ratio_b_x_96, liquidity, true);
+        return I256::from_raw(_get_amount_1_delta(
+            sqrt_ratio_a_x_96,
+            sqrt_ratio_b_x_96,
+            liquidity,
+            true,
+        ));
     }
 }
