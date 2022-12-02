@@ -53,7 +53,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> U256 {
     U256::zero()
 }
 
-fn mul_div_rounding_up(a: U256, b: U256, denominator: U256) -> U256 {
+pub fn mul_div_rounding_up(a: U256, b: U256, denominator: U256) -> U256 {
     let result = mul_div(a, b, denominator);
 
     if mul_mod(a, b, denominator) > U256::zero() {

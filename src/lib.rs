@@ -5,6 +5,6 @@ pub mod swap_math;
 pub mod tick;
 pub mod tick_bit_map;
 pub mod tick_math;
-
+pub mod unsafe_math;
 const MIN_TICK: i32 = -887272;
 const MAX_TICK: i32 = 887272;
