@@ -29,7 +29,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
         // Make sure the result is less than 2**256.
         // Also prevents denominator == 0
         if denominator <= prod_1 {
-            //TODO: revert with some error
+            return Err(UniswapV3Error::DenominatorIsLteProdOne());
         }
 
         ///////////////////////////////////////////////

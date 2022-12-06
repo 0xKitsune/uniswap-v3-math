@@ -138,7 +138,9 @@ pub fn _get_amount_0_delta(
     let numerator_1 = U256::from(liquidity).shl(96);
     let numerator_2 = sqrt_ratio_a_x_96 - sqrt_ratio_b_x_96;
 
-    //TODO: Add require check tyhat sqrtRatioAX96 > 0
+    if sqrt_ratio_a_x_96 == U256::zero() {
+        return Err(UniswapV3Error::SqrtPriceIsZero());
+    }
 
     if round_up {
         let numerator_partial = mul_div_rounding_up(numerator_1, numerator_2, sqrt_ratio_b_x_96)?;

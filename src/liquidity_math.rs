@@ -1,21 +1,21 @@
+use crate::error::UniswapV3Error;
+
 // returns (uint128 z)
-pub fn add_delta(x: u128, y: i128) -> u128 {
+pub fn add_delta(x: u128, y: i128) -> Result<u128, UniswapV3Error> {
     if y < 0 {
         let z = x - (-y as u128);
 
         if z < x {
-            //TODO: revert "LS" error
-            0 // right now just zero to avoid linting error
+            Err(UniswapV3Error::LiquiditySub())
         } else {
-            z
+            Ok(z)
         }
     } else {
         let z = x - (y as u128);
         if z >= x {
-            //TODO: revert "LA" error
-            0 // right now just zero to avoid linting error
+            Err(UniswapV3Error::LiquidityAdd())
         } else {
-            z
+            Ok(z)
         }
     }
 }
