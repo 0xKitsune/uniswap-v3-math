@@ -2,8 +2,21 @@
 name = "uniswap_v3_math"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+description = "Uniswap V3 math in Rust"
+readme = "README.md"
+homepage = "https://github.com/0xKitsune/uniswap_v3_math"
+repository = "https://github.com/0xKitsune/uniswap_v3_math"
+keywords = ["uniswap", "math"]
+exclude = [
+    "target/*",
+    ".github/*",
+    ".gitignore",
+    "Uniswap/*"
+]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ethers = "1.0.2"
+ethers = "0.17.0"
+thiserror = "1.0.36"
+

@@ -1,3 +1,10 @@
+use std::{
+    collections::HashMap,
+    ops::{BitAnd, Shr},
+};
+
+use ethers::types::U256;
+
 //Returns next and initialized
 pub fn next_initialized_tick_within_one_word(
     tick_mapping: HashMap<i16, U256>,

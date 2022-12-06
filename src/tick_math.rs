@@ -1,7 +1,13 @@
-const MIN_TICK: i32 = -887272;
+use std::ops::{BitAnd, Shl, Shr};
+
+use ethers::types::{I256, U256};
+
+use crate::error::UniswapV3Error;
+
+// const MIN_TICK: i32 = -887272;
 const MAX_TICK: i32 = 887272;
 
-pub fn get_sqrt_ratio_at_tick(tick: i32) -> U256 {
+pub fn get_sqrt_ratio_at_tick(tick: i32) -> Result<U256, UniswapV3Error> {
     let abs_tick = if tick < 0 {
         let le_bytes = &mut [0u8; 32];
         (-I256::from(tick)).to_little_endian(le_bytes);
@@ -11,8 +17,7 @@ pub fn get_sqrt_ratio_at_tick(tick: i32) -> U256 {
     };
 
     if abs_tick > U256::from(MAX_TICK) {
-        //TODO: create uniswap v3 simulation error,
-        //revert T, maybe add more descriptive errors
+        return Err(UniswapV3Error::T());
     }
 
     let mut ratio = if abs_tick.bitand(U256::from(0x1)) != U256::zero() {
@@ -67,9 +72,9 @@ pub fn get_sqrt_ratio_at_tick(tick: i32) -> U256 {
         ratio = U256::MAX / ratio;
     }
 
-    if (ratio.shr(32) + (ratio % (1 << 32))).is_zero() {
-        U256::zero()
+    if (ratio.shr(32) + (ratio % (U256::one().shl(32)))).is_zero() {
+        Ok(U256::zero())
     } else {
-        U256::one()
+        Ok(U256::one())
     }
 }
