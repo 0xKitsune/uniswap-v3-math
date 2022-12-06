@@ -97,7 +97,7 @@ pub fn compute_swap_step(
     let max = sqrt_ratio_target_x_96 == sqrt_ratio_next_x_96;
 
     if zero_for_one {
-        if !(max && exact_in) {
+        if !max || !exact_in {
             amount_in = _get_amount_0_delta(
                 sqrt_ratio_next_x_96,
                 sqrt_ratio_current_x_96,
@@ -106,7 +106,7 @@ pub fn compute_swap_step(
             )?
         }
 
-        if !(max && !exact_in) {
+        if !max || exact_in {
             amount_out = _get_amount_1_delta(
                 sqrt_ratio_next_x_96,
                 sqrt_ratio_current_x_96,
@@ -115,7 +115,7 @@ pub fn compute_swap_step(
             )?
         }
     } else {
-        if !(max && exact_in) {
+        if !max || !exact_in {
             amount_in = _get_amount_1_delta(
                 sqrt_ratio_current_x_96,
                 sqrt_ratio_next_x_96,
@@ -124,7 +124,7 @@ pub fn compute_swap_step(
             )?
         }
 
-        if !(max && !exact_in) {
+        if !max || exact_in {
             amount_out = _get_amount_0_delta(
                 sqrt_ratio_current_x_96,
                 sqrt_ratio_next_x_96,
