@@ -1,6 +1,9 @@
-use std::ops::{BitAnd, Shr};
+use std::ops::{BitAnd, Shl, Shr};
 
-use ethers::types::{I256, U256};
+use ethers::{
+    prelude::k256::elliptic_curve::consts::U2,
+    types::{I256, U256},
+};
 
 use crate::error::UniswapV3Error;
 
@@ -72,7 +75,7 @@ pub fn get_sqrt_ratio_at_tick(tick: i32) -> Result<U256, UniswapV3Error> {
         ratio = U256::MAX / ratio;
     }
 
-    if (ratio.shr(32) + (ratio % (1 << 32))).is_zero() {
+    if (ratio.shr(32) + (ratio % (U256::one().shl(32)))).is_zero() {
         Ok(U256::zero())
     } else {
         Ok(U256::one())
