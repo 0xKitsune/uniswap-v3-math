@@ -1,9 +1,6 @@
 use std::ops::{BitAnd, Shl, Shr};
 
-use ethers::{
-    prelude::k256::elliptic_curve::consts::U2,
-    types::{I256, U256},
-};
+use ethers::types::{I256, U256};
 
 use crate::error::UniswapV3Error;
 
