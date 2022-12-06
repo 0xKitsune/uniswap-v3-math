@@ -72,18 +72,18 @@ pub fn get_next_sqrt_price_from_amount_0_rounding_up(
             }
         }
 
-        return Ok(div_rounding_up(
+        Ok(div_rounding_up(
             numerator_1,
             (numerator_1 / sqrt_price_x_96) + amount,
-        ));
+        ))
     } else {
         let product = amount * sqrt_price_x_96;
         if product / amount == sqrt_price_x_96 && (numerator_1 > product) {
             let denominator = numerator_1 - product;
 
-            return mul_div_rounding_up(numerator_1, sqrt_price_x_96, denominator);
+            mul_div_rounding_up(numerator_1, sqrt_price_x_96, denominator)
         } else {
-            return Err(UniswapV3Error::ProductDivAmount());
+            Err(UniswapV3Error::ProductDivAmount())
         }
     }
 }
@@ -144,10 +144,10 @@ pub fn _get_amount_0_delta(
 
     if round_up {
         let numerator_partial = mul_div_rounding_up(numerator_1, numerator_2, sqrt_ratio_b_x_96)?;
-        return Ok(div_rounding_up(numerator_partial, sqrt_ratio_a_x_96));
+        Ok(div_rounding_up(numerator_partial, sqrt_ratio_a_x_96))
     } else {
-        return Ok(mul_div(numerator_1, numerator_2, sqrt_ratio_b_x_96)? / sqrt_ratio_a_x_96);
-    };
+        Ok(mul_div(numerator_1, numerator_2, sqrt_ratio_b_x_96)? / sqrt_ratio_a_x_96)
+    }
 }
 
 // returns (uint256 amount1)
@@ -164,17 +164,17 @@ pub fn _get_amount_1_delta(
     };
 
     if round_up {
-        return mul_div_rounding_up(
+        mul_div_rounding_up(
             U256::from(liquidity),
             sqrt_ratio_b_x_96 - sqrt_ratio_a_x_96,
             U256::from("0x1000000000000000000000000"),
-        );
+        )
     } else {
-        return mul_div(
+        mul_div(
             U256::from(liquidity),
             sqrt_ratio_b_x_96 - sqrt_ratio_a_x_96,
             U256::from("0x1000000000000000000000000"),
-        );
+        )
     }
 }
 
@@ -184,19 +184,19 @@ pub fn get_amount_0_delta(
     liquidity: i128,
 ) -> Result<I256, UniswapV3Error> {
     if liquidity < 0 {
-        return Ok(I256::from_raw(_get_amount_0_delta(
+        Ok(I256::from_raw(_get_amount_0_delta(
             sqrt_ratio_b_x_96,
             sqrt_ratio_a_x_96,
             -liquidity as i128,
             false,
-        )?));
+        )?))
     } else {
-        return Ok(I256::from_raw(_get_amount_0_delta(
+        Ok(I256::from_raw(_get_amount_0_delta(
             sqrt_ratio_a_x_96,
             sqrt_ratio_b_x_96,
             liquidity,
             true,
-        )?));
+        )?))
     }
 }
 
@@ -206,18 +206,18 @@ pub fn get_amount_1_delta(
     liquidity: i128,
 ) -> Result<I256, UniswapV3Error> {
     if liquidity < 0 {
-        return Ok(I256::from_raw(_get_amount_1_delta(
+        Ok(I256::from_raw(_get_amount_1_delta(
             sqrt_ratio_b_x_96,
             sqrt_ratio_a_x_96,
             -liquidity as i128,
             false,
-        )?));
+        )?))
     } else {
-        return Ok(I256::from_raw(_get_amount_1_delta(
+        Ok(I256::from_raw(_get_amount_1_delta(
             sqrt_ratio_a_x_96,
             sqrt_ratio_b_x_96,
             liquidity,
             true,
-        )?));
+        )?))
     }
 }

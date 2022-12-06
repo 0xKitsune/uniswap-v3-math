@@ -1,13 +1,13 @@
 use std::str::FromStr;
 
-use ethers::types::{Bytes, I256, U256};
+use ethers::types::{I256, U256};
 
 use crate::{
     error::UniswapV3Error,
     full_math::{mul_div, mul_div_rounding_up},
     sqrt_price_math::{
-        _get_amount_0_delta, _get_amount_1_delta, get_amount_1_delta,
-        get_next_sqrt_price_from_input, get_next_sqrt_price_from_output,
+        _get_amount_0_delta, _get_amount_1_delta, get_next_sqrt_price_from_input,
+        get_next_sqrt_price_from_output,
     },
 };
 
@@ -17,7 +17,6 @@ use crate::{
 //         uint256 amountOut,
 //         uint256 feeAmount
 //     )
-
 pub fn compute_swap_step(
     sqrt_ratio_current_x_96: U256,
     sqrt_ratio_target_x_96: U256,
@@ -140,9 +139,8 @@ pub fn compute_swap_step(
     }
 
     if exact_in && sqrt_ratio_next_x_96 != sqrt_ratio_target_x_96 {
-        let mut amount_remaining_le_bytes = vec![];
-        amount_remaining.to_little_endian(&mut amount_remaining_le_bytes);
-        let amount_remaining_u256 = U256::from_little_endian(&mut amount_remaining_le_bytes);
+        let amount_remaining_u256 =
+            U256::from_str(&amount_remaining.to_string()).expect("Could not convert I256 to U256");
 
         let fee_amount = amount_remaining_u256 - amount_in;
         Ok((sqrt_ratio_next_x_96, amount_in, amount_out, fee_amount))

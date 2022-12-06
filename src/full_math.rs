@@ -24,7 +24,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
             return Err(UniswapV3Error::DenominatorIsGreaterThanZero());
         }
 
-        return Ok(prod_0 / denominator);
+        Ok(prod_0 / denominator)
     } else {
         // Make sure the result is less than 2**256.
         // Also prevents denominator == 0
@@ -42,8 +42,8 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
         let remainder = mul_mod(a, b, denominator);
 
         // Subtract 256 bit number from 512 bit number
-        prod_1 = prod_1 - U256::from((remainder > prod_0) as u8);
-        prod_0 = prod_0 - remainder;
+        prod_1 -= U256::from((remainder > prod_0) as u8);
+        prod_0 -= remainder;
 
         // Factor powers of two out of denominator
         // Compute largest power of two divisor of denominator.
@@ -51,10 +51,10 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
         let mut twos = (U256::zero() - denominator) & denominator;
 
         // Divide denominator by power of two
-        denominator = denominator / twos;
+        denominator /= twos;
 
         // Divide [prod1 prod0] by the factors of two
-        prod_0 = prod_0 / twos;
+        prod_0 /= twos;
 
         // Shift in bits from prod1 into prod0. For this we need
         // to flip `twos` such that it is 2**256 / twos.
@@ -87,7 +87,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
         // that the outcome is less than 2**256, this is the final result.
         // We don't need to compute the high bits of the result and prod1
         // is no longer required.
-        return Ok(prod_0 * inv);
+        Ok(prod_0 * inv)
     }
 }
 
