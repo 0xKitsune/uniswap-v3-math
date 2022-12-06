@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 ethers = "0.17.0"
+thiserror = "1.0.36"

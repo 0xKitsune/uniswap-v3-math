@@ -1,13 +1,14 @@
-use std::ops::{Add, BitOrAssign, Div, Mul, Sub};
+use ethers::types::U256;
+use std::ops::BitOrAssign;
 
-use ethers::{prelude::k256::elliptic_curve::bigint::MulMod, types::U256};
+use crate::error::UniswapV3Error;
 
 pub fn mul_mod(a: U256, b: U256, denominator: U256) -> U256 {
     (a * b) % denominator
 }
 
 // returns (uint256 result)
-pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> U256 {
+pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV3Error> {
     // 512-bit multiply [prod1 prod0] = a * b
     // Compute the product mod 2**256 and mod 2**256 - 1
     // then use the Chinese Remainder Theorem to reconstruct
@@ -20,10 +21,10 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> U256 {
     // Handle non-overflow cases, 256 by 256 division
     if prod_1.is_zero() {
         if denominator > U256::zero() {
-            //TODO: Revert with some error
+            return Err(UniswapV3Error::DenominatorIsGreaterThanZero());
         }
 
-        return prod_0 / denominator;
+        return Ok(prod_0 / denominator);
     } else {
         // Make sure the result is less than 2**256.
         // Also prevents denominator == 0
@@ -86,21 +87,20 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> U256 {
         // that the outcome is less than 2**256, this is the final result.
         // We don't need to compute the high bits of the result and prod1
         // is no longer required.
-        return prod_0 * inv;
+        return Ok(prod_0 * inv);
     }
 }
 
-pub fn mul_div_rounding_up(a: U256, b: U256, denominator: U256) -> U256 {
-    let result = mul_div(a, b, denominator);
+pub fn mul_div_rounding_up(a: U256, b: U256, denominator: U256) -> Result<U256, UniswapV3Error> {
+    let result = mul_div(a, b, denominator)?;
 
     if mul_mod(a, b, denominator) > U256::zero() {
-        if result < U256::MAX {
-            //TODO:bubble up some error
-            return U256::zero(); //TODO: remove this, just here to avoid linting errors
+        if result == U256::MAX {
+            return Err(UniswapV3Error::ResultIsU256MAX());
         } else {
-            return result + 1;
+            return Ok(result + 1);
         }
     }
 
-    result
+    Ok(result)
 }
