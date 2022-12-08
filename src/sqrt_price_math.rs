@@ -44,7 +44,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     let mut msb = U256::zero();
 
     let mut r_comparison = U256::from("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
-    for i in 7_u128..=2 {
+    for i in (2..=7_u128).rev() {
         let f = U256::from(i.shl((r > r_comparison) as u8));
         msb = msb.bitor(f);
         r = f.shr(r);
@@ -66,7 +66,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
 
     let mut log_2: I256 = (I256::from_raw(msb) - I256::from(128)).shl(64);
 
-    for i in 63..=51 {
+    for i in (51..=63).rev() {
         r = U256::from(127).shr(r * r);
         let f = U256::from(128).shr(r);
         log_2 = log_2.bitor(I256::from_raw(U256::from(i).shl(f)));
@@ -87,12 +87,10 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
 
     let tick = if tick_low == tick_high {
         tick_low
+    } else if get_sqrt_ratio_at_tick(tick_high)? <= sqrt_price_x_96 {
+        tick_high
     } else {
-        if get_sqrt_ratio_at_tick(tick_high)? <= sqrt_price_x_96 {
-            tick_high
-        } else {
-            tick_low
-        }
+        tick_low
     };
 
     Ok(tick)
@@ -254,7 +252,7 @@ pub fn get_amount_0_delta(
     liquidity: i128,
 ) -> Result<I256, UniswapV3MathError> {
     if liquidity < 0 {
-        Ok(I256::from_raw(_get_amount_0_delta(
+        Ok(-I256::from_raw(_get_amount_0_delta(
             sqrt_ratio_b_x_96,
             sqrt_ratio_a_x_96,
             -liquidity as i128,
@@ -276,7 +274,7 @@ pub fn get_amount_1_delta(
     liquidity: i128,
 ) -> Result<I256, UniswapV3MathError> {
     if liquidity < 0 {
-        Ok(I256::from_raw(_get_amount_1_delta(
+        Ok(-I256::from_raw(_get_amount_1_delta(
             sqrt_ratio_b_x_96,
             sqrt_ratio_a_x_96,
             -liquidity as i128,
