@@ -3,7 +3,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 
 //TODO: make these errors better, some errors in univ3 libs are just require(condition) without a message.
-pub enum UniswapV3Error {
+pub enum UniswapV3MathError {
     #[error("Denominator is greater than 0")]
     DenominatorIsGreaterThanZero(),
     #[error("Result is U256::MAX")]
@@ -25,4 +25,8 @@ pub enum UniswapV3Error {
     LiquidityAdd(),
     #[error("The given tick must be less than, or equal to, the maximum tick")]
     T(),
+    #[error(
+        "Second inequality must be < because the price can never reach the price at the max tick"
+    )]
+    R(),
 }

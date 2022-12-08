@@ -1,14 +1,14 @@
 use ethers::types::U256;
 use std::ops::BitOrAssign;
 
-use crate::error::UniswapV3Error;
+use crate::error::UniswapV3MathError;
 
 pub fn mul_mod(a: U256, b: U256, denominator: U256) -> U256 {
     (a * b) % denominator
 }
 
 // returns (uint256 result)
-pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV3Error> {
+pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV3MathError> {
     // 512-bit multiply [prod1 prod0] = a * b
     // Compute the product mod 2**256 and mod 2**256 - 1
     // then use the Chinese Remainder Theorem to reconstruct
@@ -21,7 +21,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
     // Handle non-overflow cases, 256 by 256 division
     if prod_1.is_zero() {
         if denominator > U256::zero() {
-            return Err(UniswapV3Error::DenominatorIsGreaterThanZero());
+            return Err(UniswapV3MathError::DenominatorIsGreaterThanZero());
         }
 
         Ok(prod_0 / denominator)
@@ -29,7 +29,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
         // Make sure the result is less than 2**256.
         // Also prevents denominator == 0
         if denominator <= prod_1 {
-            return Err(UniswapV3Error::DenominatorIsLteProdOne());
+            return Err(UniswapV3MathError::DenominatorIsLteProdOne());
         }
 
         ///////////////////////////////////////////////
@@ -91,12 +91,16 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
     }
 }
 
-pub fn mul_div_rounding_up(a: U256, b: U256, denominator: U256) -> Result<U256, UniswapV3Error> {
+pub fn mul_div_rounding_up(
+    a: U256,
+    b: U256,
+    denominator: U256,
+) -> Result<U256, UniswapV3MathError> {
     let result = mul_div(a, b, denominator)?;
 
     if mul_mod(a, b, denominator) > U256::zero() {
         if result == U256::MAX {
-            return Err(UniswapV3Error::ResultIsU256MAX());
+            return Err(UniswapV3MathError::ResultIsU256MAX());
         } else {
             return Ok(result + 1);
         }

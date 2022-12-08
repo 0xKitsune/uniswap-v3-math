@@ -1,12 +1,16 @@
-use std::ops::Shl;
+use std::ops::{BitOr, Shl, Shr};
 
 use ethers::types::{I256, U256};
 
 use crate::{
-    error::UniswapV3Error,
+    error::UniswapV3MathError,
     full_math::{mul_div, mul_div_rounding_up},
+    tick_math::get_sqrt_ratio_at_tick,
     unsafe_math::div_rounding_up,
 };
+
+// const MIN_TICK: i32 = -887272;
+// const MAX_TICK: i32 = 887272;
 
 // returns (sqrtQX96)
 pub fn get_next_sqrt_price_from_input(
@@ -14,11 +18,11 @@ pub fn get_next_sqrt_price_from_input(
     liquidity: u128,
     amount_in: U256,
     zero_for_one: bool,
-) -> Result<U256, UniswapV3Error> {
+) -> Result<U256, UniswapV3MathError> {
     if sqrt_price == U256::zero() {
-        return Err(UniswapV3Error::SqrtPriceIsZero());
+        return Err(UniswapV3MathError::SqrtPriceIsZero());
     } else if liquidity == 0 {
-        return Err(UniswapV3Error::LiquidityIsZero());
+        return Err(UniswapV3MathError::LiquidityIsZero());
     }
 
     if zero_for_one {
@@ -28,17 +32,83 @@ pub fn get_next_sqrt_price_from_input(
     }
 }
 
+pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3MathError> {
+    if !(sqrt_price_x_96 >= U256::from("0xFFFD8963EFD1FC6A506488495D951D5263988D26")
+        && sqrt_price_x_96 < U256::from("4295128739"))
+    {
+        return Err(UniswapV3MathError::R());
+    }
+
+    let ratio = sqrt_price_x_96.shl(32);
+    let mut r = ratio;
+    let mut msb = U256::zero();
+
+    let mut r_comparison = U256::from("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+    for i in 7_u128..=2 {
+        let f = U256::from(i.shl((r > r_comparison) as u8));
+        msb = msb.bitor(f);
+        r = f.shr(r);
+        r_comparison = r_comparison.shr(1);
+    }
+
+    let f = U256::from(1.shl((r > U256::from(0x3)) as u8));
+    msb = msb.bitor(f);
+    r = f.shr(r);
+
+    let f = U256::from((r > U256::from(0x01)) as u8);
+    msb = msb.bitor(f);
+
+    if msb >= U256::from(128) {
+        r = ratio.shr(msb - U256::from(127));
+    } else {
+        r = ratio.shl(U256::from(127) - msb);
+    }
+
+    let mut log_2: I256 = (I256::from_raw(msb) - I256::from(128)).shl(64);
+
+    for i in 63..=51 {
+        r = U256::from(127).shr(r * r);
+        let f = U256::from(128).shr(r);
+        log_2 = log_2.bitor(I256::from_raw(U256::from(i).shl(f)));
+        r = f.shr(r);
+    }
+
+    let log_sqrt10001 = log_2 * I256::from_hex_str("0x3627A301D71055774C85").unwrap();
+
+    let tick_low = (log_sqrt10001
+        - I256::from_hex_str("3402992956809132418596140100660247210").unwrap())
+    .shr(I256::from(128))
+    .as_i32();
+
+    let tick_high = (log_sqrt10001
+        + I256::from_hex_str("291339464771989622907027621153398088495").unwrap())
+    .shr(I256::from(128))
+    .as_i32();
+
+    let tick = if tick_low == tick_high {
+        tick_low
+    } else {
+        if get_sqrt_ratio_at_tick(tick_high)? <= sqrt_price_x_96 {
+            tick_high
+        } else {
+            tick_low
+        }
+    };
+
+    Ok(tick)
+}
+
 // returns (sqrtQX96)
 pub fn get_next_sqrt_price_from_output(
     sqrt_price: U256,
     liquidity: u128,
     amount_out: U256,
     zero_for_one: bool,
-) -> Result<U256, UniswapV3Error> {
+) -> Result<U256, UniswapV3MathError> {
     if sqrt_price == U256::zero() {
-        return Err(UniswapV3Error::SqrtPriceIsZero());
+        return Err(UniswapV3MathError::SqrtPriceIsZero());
     } else if liquidity == 0 {
-        return Err(UniswapV3Error::LiquidityIsZero());
+        return Err(UniswapV3MathError::LiquidityIsZero());
     }
 
     if zero_for_one {
@@ -54,7 +124,7 @@ pub fn get_next_sqrt_price_from_amount_0_rounding_up(
     liquidity: u128,
     amount: U256,
     add: bool,
-) -> Result<U256, UniswapV3Error> {
+) -> Result<U256, UniswapV3MathError> {
     if amount.is_zero() {
         return Ok(sqrt_price_x_96);
     }
@@ -83,7 +153,7 @@ pub fn get_next_sqrt_price_from_amount_0_rounding_up(
 
             mul_div_rounding_up(numerator_1, sqrt_price_x_96, denominator)
         } else {
-            Err(UniswapV3Error::ProductDivAmount())
+            Err(UniswapV3MathError::ProductDivAmount())
         }
     }
 }
@@ -94,7 +164,7 @@ pub fn get_next_sqrt_price_from_amount_1_rounding_down(
     liquidity: u128,
     amount: U256,
     add: bool,
-) -> Result<U256, UniswapV3Error> {
+) -> Result<U256, UniswapV3MathError> {
     if add {
         let quotent = if amount <= U256::from("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF") {
             amount.shl(96) / liquidity
@@ -128,7 +198,7 @@ pub fn _get_amount_0_delta(
     sqrt_ratio_b_x_96: U256,
     liquidity: i128,
     round_up: bool,
-) -> Result<U256, UniswapV3Error> {
+) -> Result<U256, UniswapV3MathError> {
     let (sqrt_ratio_a_x_96, sqrt_ratio_b_x_96) = if sqrt_ratio_a_x_96 > sqrt_ratio_b_x_96 {
         (sqrt_ratio_a_x_96, sqrt_ratio_b_x_96)
     } else {
@@ -139,7 +209,7 @@ pub fn _get_amount_0_delta(
     let numerator_2 = sqrt_ratio_a_x_96 - sqrt_ratio_b_x_96;
 
     if sqrt_ratio_a_x_96 == U256::zero() {
-        return Err(UniswapV3Error::SqrtPriceIsZero());
+        return Err(UniswapV3MathError::SqrtPriceIsZero());
     }
 
     if round_up {
@@ -156,7 +226,7 @@ pub fn _get_amount_1_delta(
     mut sqrt_ratio_b_x_96: U256,
     liquidity: i128,
     round_up: bool,
-) -> Result<U256, UniswapV3Error> {
+) -> Result<U256, UniswapV3MathError> {
     (sqrt_ratio_a_x_96, sqrt_ratio_b_x_96) = if sqrt_ratio_a_x_96 > sqrt_ratio_b_x_96 {
         (sqrt_ratio_a_x_96, sqrt_ratio_b_x_96)
     } else {
@@ -182,7 +252,7 @@ pub fn get_amount_0_delta(
     sqrt_ratio_a_x_96: U256,
     sqrt_ratio_b_x_96: U256,
     liquidity: i128,
-) -> Result<I256, UniswapV3Error> {
+) -> Result<I256, UniswapV3MathError> {
     if liquidity < 0 {
         Ok(I256::from_raw(_get_amount_0_delta(
             sqrt_ratio_b_x_96,
@@ -204,7 +274,7 @@ pub fn get_amount_1_delta(
     sqrt_ratio_a_x_96: U256,
     sqrt_ratio_b_x_96: U256,
     liquidity: i128,
-) -> Result<I256, UniswapV3Error> {
+) -> Result<I256, UniswapV3MathError> {
     if liquidity < 0 {
         Ok(I256::from_raw(_get_amount_1_delta(
             sqrt_ratio_b_x_96,
