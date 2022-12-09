@@ -1,13 +1,10 @@
-use std::{
-    collections::HashMap,
-    ops::{BitAnd, Shr},
-};
+use std::ops::{BitAnd, Shr};
 
 use ethers::types::U256;
 
 //Returns next and initialized
 pub fn next_initialized_tick_within_one_word(
-    tick_mapping: HashMap<i16, U256>,
+    tick_mapping: U256,
     tick: i32,
     tick_spacing: i32,
     lte: bool,
@@ -19,9 +16,9 @@ pub fn next_initialized_tick_within_one_word(
     };
 
     if lte {
-        let (word_pos, bit_pos) = position(compressed);
+        let bit_pos = position(compressed).1;
         let mask = U256::from((1 << bit_pos) - 1 + (1 << bit_pos));
-        let masked = tick_mapping.get(&word_pos).unwrap().bitand(mask);
+        let masked = tick_mapping.bitand(mask);
         let initialized = !masked.is_zero();
 
         let next = if initialized {
@@ -35,10 +32,10 @@ pub fn next_initialized_tick_within_one_word(
 
         (next, initialized)
     } else {
-        let (word_pos, bit_pos) = position(compressed + 1);
+        let bit_pos = position(compressed + 1).1;
         let mask = !U256::from((1 << bit_pos) - 1);
 
-        let masked = tick_mapping.get(&word_pos).unwrap().bitand(mask);
+        let masked = tick_mapping.bitand(mask);
         let initialized = !masked.is_zero();
 
         let next = if initialized {
