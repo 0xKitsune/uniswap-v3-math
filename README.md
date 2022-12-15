@@ -1,6 +1,9 @@
-# Uniswap V3 Math In Rust
+## ------------------------------------
+## Tests and Docs are still being written 🏗️.
+Tests are still being written, assume bugs until tested. If you would like to help contribute on the tests or docs, feel free to open up an issue or make a PR.
+## ------------------------------------
 
-### Under Construction, still needs testing 🏗️
+# Uniswap V3 Math In Rust
 
 ```rust
 
