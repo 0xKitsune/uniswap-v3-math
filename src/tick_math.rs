@@ -64,7 +64,7 @@ mod test {
     use super::*;
 
     #[test]
-    fn get_sqrt_ratio_at_tick_bounds() { // test that the get_sqrt_ratio_at_tick panics when tick is out of bounds on negative side
+    fn get_sqrt_ratio_at_tick_bounds() { // the function should return an error if the tick is out of bounds
         if let Err(err) = get_sqrt_ratio_at_tick(MIN_TICK - 1) {
             assert!(matches!(err, UniswapV3MathError::T()));
         } else {
@@ -78,7 +78,7 @@ mod test {
     }
 
     #[test]
-    fn get_sqrt_ratio_at_tick_values() {
+    fn get_sqrt_ratio_at_tick_values() { // test individual values for correct results
         assert_eq!(get_sqrt_ratio_at_tick(MIN_TICK).unwrap(), 4295128739u64.into(), "sqrt ratio at min incorrect");
         assert_eq!(get_sqrt_ratio_at_tick(MIN_TICK + 1).unwrap(), 4295343490u64.into(), "sqrt ratio at min + 1 incorrect");
         assert_eq!(
