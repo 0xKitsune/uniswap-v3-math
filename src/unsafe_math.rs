@@ -5,6 +5,6 @@ pub fn div_rounding_up(a: U256, b: U256) -> U256 {
     if remainder.is_zero() {
         quotent
     } else {
-        quotent + remainder
+        quotent + 1
     }
 }
