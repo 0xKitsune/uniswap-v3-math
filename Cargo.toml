@@ -1,6 +1,6 @@
 [package]
 name = "uniswap_v3_math"
-version = "0.2.4"
+version = "0.2.5"
 edition = "2021"
 license = "MIT"
 description = "Uniswap V3 math in Rust"

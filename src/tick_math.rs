@@ -4,8 +4,8 @@ use ethers::types::{I256, U256};
 
 use crate::error::UniswapV3MathError;
 
-const MIN_TICK: i32 = -887272;
-const MAX_TICK: i32 = -MIN_TICK;
+pub const MIN_TICK: i32 = -887272;
+pub const MAX_TICK: i32 = -MIN_TICK;
 
 pub fn get_sqrt_ratio_at_tick(tick: i32) -> Result<U256, UniswapV3MathError> {
     let abs_tick = if tick < 0 {
