@@ -9,9 +9,6 @@ use crate::{
     unsafe_math::div_rounding_up,
 };
 
-// const MIN_TICK: i32 = -887272;
-// const MAX_TICK: i32 = 887272;
-
 // returns (sqrtQX96)
 pub fn get_next_sqrt_price_from_input(
     sqrt_price: U256,
