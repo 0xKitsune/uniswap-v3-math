@@ -1,7 +1,4 @@
-use std::{
-    ops::{BitAnd, Shl, Shr},
-    str::FromStr,
-};
+use std::ops::{BitAnd, Shl, Shr};
 
 use ethers::types::{I256, U256};
 
