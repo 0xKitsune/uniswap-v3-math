@@ -7,6 +7,14 @@ use crate::error::UniswapV3MathError;
 pub const MIN_TICK: i32 = -887272;
 pub const MAX_TICK: i32 = -MIN_TICK;
 
+pub const MIN_SQRT_RATIO: U256 = U256([285968860985, 0, 0, 0]);
+pub const MAX_SQRT_RATIO: U256 = U256([
+    9809463991923573570,
+    227557619515130776,
+    5049738529920590081,
+    1,
+]);
+
 pub fn get_sqrt_ratio_at_tick(tick: i32) -> Result<U256, UniswapV3MathError> {
     let abs_tick = if tick < 0 {
         let le_bytes = &mut [0u8; 32];
