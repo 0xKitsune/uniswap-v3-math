@@ -1,13 +1,13 @@
 [package]
 name = "uniswap_v3_math"
-version = "0.2.7"
+version = "0.2.8"
 edition = "2021"
 license = "MIT"
 description = "Uniswap V3 math in Rust"
 readme = "README.md"
 homepage = "https://github.com/0xKitsune/uniswap_v3_math"
 repository = "https://github.com/0xKitsune/uniswap_v3_math"
-keywords = ["uniswap", "math"]
+keywords = ["uniswapV3", "math"]
 exclude = [
     "target/*",
     ".github/*",
@@ -17,6 +17,6 @@ exclude = [
 
 
 [dependencies]
-ethers = "0.17.0"
+ethers = { version = "0.17.0", features = ["abigen"] }
 thiserror = "1.0.36"
 
