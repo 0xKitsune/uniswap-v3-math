@@ -1,5 +1,5 @@
 use ethers::types::U256;
-use std::ops::BitOrAssign;
+use std::ops::{BitAnd, BitOrAssign};
 
 use crate::error::UniswapV3MathError;
 
@@ -20,8 +20,8 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
 
     // Handle non-overflow cases, 256 by 256 division
     if prod_1.is_zero() {
-        if denominator > U256::zero() {
-            return Err(UniswapV3MathError::DenominatorIsGreaterThanZero());
+        if denominator == U256::zero() {
+            return Err(UniswapV3MathError::DenominatorIsZero());
         }
 
         Ok(prod_0 / denominator)
@@ -48,7 +48,10 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
         // Factor powers of two out of denominator
         // Compute largest power of two divisor of denominator.
         // Always >= 1.
-        let mut twos = (U256::zero() - denominator) & denominator;
+        let mut twos = U256::zero()
+            .overflowing_sub(denominator)
+            .0
+            .bitand(denominator);
 
         // Divide denominator by power of two
         denominator /= twos;
