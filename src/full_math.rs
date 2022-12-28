@@ -15,8 +15,12 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
     // the 512 bit result. The result is stored in two 256
     // variables such that product = prod1 * 2**256 + prod0
     let mm = mul_mod(a, b, U256::MAX);
-    let mut prod_0 = a * b; // Least significant 256 bits of the product
-    let mut prod_1 = mm - prod_0 - U256::from((mm < prod_0) as u8); // Most significant 256 bits of the product
+    let mut prod_0 = a.overflowing_mul(b).0; // Least significant 256 bits of the product
+    let mut prod_1 = mm
+        .overflowing_sub(prod_0)
+        .0
+        .overflowing_sub(U256::from((mm < prod_0) as u8))
+        .0; // Most significant 256 bits of the product
 
     // Handle non-overflow cases, 256 by 256 division
     if prod_1.is_zero() {
@@ -42,8 +46,10 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
         let remainder = mul_mod(a, b, denominator);
 
         // Subtract 256 bit number from 512 bit number
-        prod_1 -= U256::from((remainder > prod_0) as u8);
-        prod_0 -= remainder;
+        prod_1 = prod_1
+            .overflowing_sub(U256::from((remainder > prod_0) as u8))
+            .0;
+        prod_0 = prod_0.overflowing_sub(remainder).0;
 
         // Factor powers of two out of denominator
         // Compute largest power of two divisor of denominator.
@@ -54,15 +60,20 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
             .bitand(denominator);
 
         // Divide denominator by power of two
+        //TODO: this is in an assembly block, this should be able to underflow
         denominator /= twos;
 
         // Divide [prod1 prod0] by the factors of two
+        //TODO: this is in an assembly block, this should be able to underflow
+
         prod_0 /= twos;
 
         // Shift in bits from prod1 into prod0. For this we need
         // to flip `twos` such that it is 2**256 / twos.
         // If twos is zero, then it becomes one
-        twos = (U256::zero().overflowing_sub(twos).0) / twos + U256::one();
+        //TODO: this is in an assembly block, this should be able to underflow
+        twos = (U256::zero().overflowing_sub(twos).0 / twos) + U256::one();
+
         prod_0.bitor_assign(prod_1 * twos);
 
         // Invert denominator mod 2**256
