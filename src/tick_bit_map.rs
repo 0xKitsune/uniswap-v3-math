@@ -1,16 +1,25 @@
-use std::ops::{BitAnd, Shr};
+use std::{
+    ops::{BitAnd, Shr},
+    sync::Arc,
+};
 
-use ethers::types::U256;
+use ethers::{
+    providers::Middleware,
+    types::{H160, U256},
+};
+
+use crate::{abi, error::UniswapV3MathError};
 
 //Returns next and initialized
 //current_word is the current word in the TickBitmap of the pool based on `tick`. TickBitmap[word_pos] = current_word
 //Where word_pos is the 256 bit offset of the ticks word_pos.. word_pos := tick >> 8
-pub fn next_initialized_tick_within_one_word(
-    current_word: U256,
+pub async fn next_initialized_tick_within_one_word<M: Middleware>(
     tick: i32,
     tick_spacing: i32,
     lte: bool,
-) -> (i32, bool) {
+    pool_address: H160,
+    middleware: Arc<M>,
+) -> Result<(i32, bool), UniswapV3MathError> {
     let compressed = if tick < 0 && tick % tick_spacing != 0 {
         (tick / tick_spacing) - 1
     } else {
@@ -18,9 +27,20 @@ pub fn next_initialized_tick_within_one_word(
     };
 
     if lte {
-        let bit_pos = position(compressed).1;
+        let (word_pos, bit_pos) = position(compressed);
         let mask = U256::from((1 << bit_pos) - 1 + (1 << bit_pos));
-        let masked = current_word.bitand(mask);
+
+        let word = match abi::IUniswapV3Pool::new(pool_address, middleware)
+            .tick_bitmap(word_pos)
+            .call()
+            .await
+        {
+            Ok(word) => word,
+            Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
+        };
+
+        let masked = word.bitand(mask);
+
         let initialized = !masked.is_zero();
 
         let next = if initialized {
@@ -32,12 +52,21 @@ pub fn next_initialized_tick_within_one_word(
             compressed - (bit_pos as i32 * tick_spacing)
         };
 
-        (next, initialized)
+        Ok((next, initialized))
     } else {
-        let bit_pos = position(compressed + 1).1;
+        let (word_pos, bit_pos) = position(compressed + 1);
         let mask = !U256::from((1 << bit_pos) - 1);
 
-        let masked = current_word.bitand(mask);
+        let word = match abi::IUniswapV3Pool::new(pool_address, middleware)
+            .tick_bitmap(word_pos)
+            .call()
+            .await
+        {
+            Ok(word) => word,
+            Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
+        };
+
+        let masked = word.bitand(mask);
         let initialized = !masked.is_zero();
 
         let next = if initialized {
@@ -50,7 +79,7 @@ pub fn next_initialized_tick_within_one_word(
             (compressed + 1 + 0xFF - bit_pos as i32) * tick_spacing
         };
 
-        (next, initialized)
+        Ok((next, initialized))
     }
 }
 

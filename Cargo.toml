@@ -17,6 +17,6 @@ exclude = [
 
 
 [dependencies]
-ethers = "0.17.0"
+ethers = { version = "0.17.0", features = ["abigen"] }
 thiserror = "1.0.36"
 
