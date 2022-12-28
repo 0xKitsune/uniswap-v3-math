@@ -4,8 +4,8 @@ use thiserror::Error;
 
 //TODO: make these errors better, some errors in univ3 libs are just require(condition) without a message.
 pub enum UniswapV3MathError {
-    #[error("Denominator is greater than 0")]
-    DenominatorIsGreaterThanZero(),
+    #[error("Denominator is 0")]
+    DenominatorIsZero(),
     #[error("Result is U256::MAX")]
     ResultIsU256MAX(),
     #[error("Sqrt price is 0")]
