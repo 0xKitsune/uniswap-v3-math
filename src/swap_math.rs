@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{ops::Neg, str::FromStr};
 
 use ethers::types::{I256, U256};
 
@@ -31,12 +31,11 @@ pub fn compute_swap_step(
     let mut amount_in = U256::zero();
     let mut amount_out = U256::zero();
 
-    let negative_amount_in_remaining =
-        U256::from_str(&(-amount_remaining).to_string()).expect("Could not convert I256 to U256");
+    let negative_amount_in_remaining = amount_remaining.neg().into_raw();
 
     if exact_in {
         let amount_remaining_less_fee = mul_div(
-            U256::from_str(&amount_remaining.to_string()).expect("Could not convert I256 to U256"),
+            amount_remaining.into_raw(),
             U256::from(1000000 - fee_pips), //1e6 - fee_pips
             U256::from(1000000),            //1e6
         )?;
@@ -139,8 +138,7 @@ pub fn compute_swap_step(
     }
 
     if exact_in && sqrt_ratio_next_x_96 != sqrt_ratio_target_x_96 {
-        let amount_remaining_u256 =
-            U256::from_str(&amount_remaining.to_string()).expect("Could not convert I256 to U256");
+        let amount_remaining_u256 = amount_remaining.into_raw();
 
         let fee_amount = amount_remaining_u256 - amount_in;
         Ok((sqrt_ratio_next_x_96, amount_in, amount_out, fee_amount))
