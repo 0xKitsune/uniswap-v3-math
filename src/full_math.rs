@@ -4,7 +4,7 @@ use std::ops::{BitAnd, BitOrAssign};
 use crate::error::UniswapV3MathError;
 
 pub fn mul_mod(a: U256, b: U256, denominator: U256) -> U256 {
-    (a * b) % denominator
+    a.overflowing_mul(b).0 % denominator
 }
 
 // returns (uint256 result)
