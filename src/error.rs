@@ -19,9 +19,9 @@ pub enum UniswapV3MathError {
     ProductDivAmount(),
     #[error("Denominator is less than or equal to prod_1")]
     DenominatorIsLteProdOne(),
-    #[error(" Liquidity Sub")]
+    #[error("Liquidity Sub")]
     LiquiditySub(),
-    #[error("LiquidityAdd")]
+    #[error("Liquidity Add")]
     LiquidityAdd(),
     #[error("The given tick must be less than, or equal to, the maximum tick")]
     T(),
