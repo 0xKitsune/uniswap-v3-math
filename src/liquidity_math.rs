@@ -27,13 +27,28 @@ mod test {
 
     #[test]
     fn test_add_delta() {
-        let result = add_delta(3, -4);
-        assert_eq!(result.err().unwrap().to_string(), "Liquidity Sub");
+        // 1 + 0
+        let result = add_delta(1, 0);
+        assert_eq!(result.unwrap(), 1);
 
+        // 1 + -1
+        let result = add_delta(1, -1);
+        assert_eq!(result.unwrap(), 0);
+
+        // 1 + 1
+        let result = add_delta(1, 1);
+        assert_eq!(result.unwrap(), 2);
+
+        // 2**128-15 + 15 overflows
         let result = add_delta(340282366920938463463374607431768211441, 15);
         assert_eq!(result.err().unwrap().to_string(), "Liquidity Add");
 
-        let result = add_delta(1, 1);
-        assert_eq!(result.unwrap(), 2);
+        // 0 + -1 underflows
+        let result = add_delta(0, -1);
+        assert_eq!(result.err().unwrap().to_string(), "Liquidity Sub");
+
+        // 3 + -4 underflows
+        let result = add_delta(3, -4);
+        assert_eq!(result.err().unwrap().to_string(), "Liquidity Sub");
     }
 }
