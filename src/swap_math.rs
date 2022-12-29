@@ -1,4 +1,4 @@
-use std::{ops::Neg, str::FromStr};
+use std::{ops::Neg};
 
 use ethers::types::{I256, U256};
 

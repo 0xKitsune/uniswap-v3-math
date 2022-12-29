@@ -28,7 +28,7 @@ pub async fn next_initialized_tick_within_one_word<M: Middleware>(
 
     if lte {
         let (word_pos, bit_pos) = position(compressed);
-        let mask = U256::from((U256::one().shl(bit_pos)) - 1 + (U256::one().shl(bit_pos)));
+        let mask = (U256::one().shl(bit_pos)) - 1 + (U256::one().shl(bit_pos));
 
         let word = match abi::IUniswapV3Pool::new(pool_address, middleware)
             .tick_bitmap(word_pos)
@@ -55,7 +55,7 @@ pub async fn next_initialized_tick_within_one_word<M: Middleware>(
         Ok((next, initialized))
     } else {
         let (word_pos, bit_pos) = position(compressed + 1);
-        let mask = !U256::from((U256::one().shl(bit_pos)) - U256::one());
+        let mask = !((U256::one().shl(bit_pos)) - U256::one());
 
         let word = match abi::IUniswapV3Pool::new(pool_address, middleware)
             .tick_bitmap(word_pos)
