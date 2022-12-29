@@ -282,3 +282,35 @@ pub fn get_amount_1_delta(
         )?))
     }
 }
+
+#[cfg(test)]
+mod test {
+
+    #[test]
+    fn test_get_amount_1_delta() {}
+
+    #[test]
+    fn test_get_amount_0_delta() {}
+
+    #[test]
+    fn test_get_amount_1_delta_private() {}
+
+    #[test]
+    fn test_get_amount_0_delta_private() {}
+
+    #[test]
+    fn test_get_next_sqrt_price_from_amount_1_rounding_down() {}
+
+    #[test]
+    fn test_get_next_sqrt_price_from_amount_0_rounding_up() {}
+
+    #[test]
+    fn test_get_next_sqrt_price_from_output() {}
+    #[test]
+    fn test_() {}
+    #[test]
+    fn test_get_tick_at_sqrt_ratio() {}
+
+    #[test]
+    fn test_get_next_sqrt_price_from_input() {}
+}
