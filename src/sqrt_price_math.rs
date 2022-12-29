@@ -285,12 +285,90 @@ pub fn get_amount_1_delta(
 
 #[cfg(test)]
 mod test {
+    use std::ops::{Div, Mul, Sub};
+
+    use ethers::types::U256;
+
+    use crate::utils;
+
+    use super::{_get_amount_0_delta, get_amount_0_delta};
+
+    fn encode_price_sqrt(reserve_0: U256, reserve_1: U256) -> U256 {
+        let reserve_0 = utils::u256_to_ruint(reserve_0);
+        let reserve_1 = utils::u256_to_ruint(reserve_1);
+
+        let result = reserve_1
+            .div(reserve_0)
+            .root(2)
+            .mul(utils::RUINT_TWO.pow(utils::u256_to_ruint(U256::from(96))));
+
+        U256::from_little_endian(&result.as_le_bytes())
+    }
+
+    #[test]
+    fn test_get_amount_0_delta() {
+        // returns 0 if liquidity is 0
+        let amount_0 = _get_amount_0_delta(
+            encode_price_sqrt(U256::one(), U256::one()),
+            encode_price_sqrt(U256::from(2), U256::one()),
+            0,
+            true,
+        );
+
+        assert_eq!(amount_0.unwrap(), U256::zero());
+
+        // returns 0 if prices are equal
+        let amount_0 = _get_amount_0_delta(
+            encode_price_sqrt(U256::one(), U256::one()),
+            encode_price_sqrt(U256::one(), U256::one()),
+            0,
+            true,
+        );
+
+        assert_eq!(amount_0.unwrap(), U256::zero());
+
+        // returns 0.1 amount1 for price of 1 to 1.21
+        let amount_0 = _get_amount_0_delta(
+            encode_price_sqrt(U256::one(), U256::one()),
+            encode_price_sqrt(U256::from(121), U256::from(100)),
+            1e10 as i128,
+            true,
+        )
+        .unwrap();
+
+        assert_eq!(
+            amount_0.clone(),
+            U256::from_dec_str("90909090909090910").unwrap()
+        );
+
+        let amount_0_rounded_down = _get_amount_0_delta(
+            encode_price_sqrt(U256::one(), U256::one()),
+            encode_price_sqrt(U256::from(121), U256::from(100)),
+            1e10 as i128,
+            false,
+        );
+
+        assert_eq!(amount_0_rounded_down.unwrap(), amount_0.sub(1));
+
+        // works for prices that overflow
+        let amount_0 = _get_amount_0_delta(
+            encode_price_sqrt(
+                U256::from("0x10000000000000000000000000000000000000000000000"),
+                U256::one(),
+            ),
+            encode_price_sqrt(
+                U256::from("100000000000000000000000000000000000000000000000000000000000000"),
+                U256::one(),
+            ),
+            1e10 as i128,
+            true,
+        );
+
+        assert_eq!(amount_0.unwrap(), U256::zero());
+    }
 
     #[test]
     fn test_get_amount_1_delta() {}
-
-    #[test]
-    fn test_get_amount_0_delta() {}
 
     #[test]
     fn test_get_amount_1_delta_private() {}
