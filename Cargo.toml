@@ -18,5 +18,6 @@ exclude = [
 
 [dependencies]
 ethers = { version = "0.17.0", features = ["abigen"] }
+ruint = "1.7.0"
 thiserror = "1.0.36"
 

@@ -106,7 +106,6 @@ pub fn get_sqrt_ratio_at_tick(tick: i32) -> Result<U256, UniswapV3MathError> {
 
 #[cfg(test)]
 mod test {
-    #![allow(unused_imports)]
     use super::*;
     use ethers::types::U256;
 
