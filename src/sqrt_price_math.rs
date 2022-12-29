@@ -306,8 +306,7 @@ mod test {
 
     #[test]
     fn test_get_next_sqrt_price_from_output() {}
-    #[test]
-    fn test_() {}
+
     #[test]
     fn test_get_tick_at_sqrt_ratio() {}
 
