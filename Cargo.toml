@@ -1,6 +1,6 @@
 [package]
 name = "uniswap_v3_math"
-version = "0.2.13"
+version = "0.2.14"
 edition = "2021"
 license = "MIT"
 description = "Uniswap V3 math in Rust"
@@ -18,5 +18,6 @@ exclude = [
 
 [dependencies]
 ethers = { version = "0.17.0", features = ["abigen"] }
+ruint = "1.7.0"
 thiserror = "1.0.36"
 
