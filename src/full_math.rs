@@ -1,5 +1,5 @@
 use ethers::types::U256;
-use std::ops::{Add, BitAnd, BitOrAssign, Div, Mul, MulAssign, Sub};
+use std::ops::{Add, BitAnd, BitOr, BitOrAssign, Div, Mul, MulAssign, Sub};
 
 use crate::{
     error::UniswapV3MathError,
@@ -86,7 +86,7 @@ pub fn mul_div(a: U256, b: U256, denominator: U256) -> Result<U256, UniswapV3Mat
     // Compute the inverse by starting with a seed that is correct
     // correct for four bits. That is, denominator * inv = 1 mod 2**4
 
-    let mut inv = (RUINT_THREE.mul(denominator)).pow(RUINT_TWO);
+    let mut inv = RUINT_THREE.mul(denominator).bitor(RUINT_TWO);
 
     // Now use Newton-Raphson iteration to improve the precision.
     // Thanks to Hensel's lifting lemma, this also works in modular
@@ -134,7 +134,7 @@ pub fn mul_div_rounding_up(
 #[cfg(test)]
 mod test {
 
-    use std::ops::Sub;
+    use std::ops::{Div, Mul, Sub};
 
     use ethers::types::U256;
 
@@ -172,5 +172,13 @@ mod test {
         // All max inputs
         let result = mul_div(U256::MAX, U256::MAX, U256::MAX);
         assert_eq!(result.unwrap(), U256::MAX);
+
+        // Accurate without phantom overflow
+        let result = mul_div(
+            Q128,
+            U256::from(50).mul(Q128).div(100),
+            U256::from(150).mul(Q128).div(100),
+        );
+        assert_eq!(result.unwrap(), Q128.div(3));
     }
 }
