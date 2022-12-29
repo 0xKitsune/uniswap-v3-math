@@ -1,5 +1,5 @@
 use ethers::types::U256;
-use std::ops::{Add, BitAnd, BitOr, BitOrAssign, Div, Mul, MulAssign, Sub};
+use std::ops::{Add, BitAnd, BitOr, BitOrAssign, BitXor, Div, Mul, MulAssign, Sub};
 
 use crate::{
     error::UniswapV3MathError,
@@ -86,7 +86,7 @@ pub fn mul_div(a: U256, b: U256, denominator: U256) -> Result<U256, UniswapV3Mat
     // Compute the inverse by starting with a seed that is correct
     // correct for four bits. That is, denominator * inv = 1 mod 2**4
 
-    let mut inv = RUINT_THREE.mul(denominator).bitor(RUINT_TWO);
+    let mut inv = RUINT_THREE.mul(denominator).bitxor(RUINT_TWO);
 
     // Now use Newton-Raphson iteration to improve the precision.
     // Thanks to Hensel's lifting lemma, this also works in modular
@@ -105,6 +105,9 @@ pub fn mul_div(a: U256, b: U256, denominator: U256) -> Result<U256, UniswapV3Mat
     // that the outcome is less than 2**256, this is the final result.
     // We don't need to compute the high bits of the result and prod1
     // is no longer required.
+
+    //TODO: FIXME: prod0 and inv are off
+
     Ok(U256::from_little_endian(&(prod_0 * inv).as_le_bytes()))
 }
 
@@ -179,6 +182,14 @@ mod test {
             U256::from(50).mul(Q128).div(100),
             U256::from(150).mul(Q128).div(100),
         );
+        assert_eq!(result.unwrap(), Q128.div(3));
+
+        // Accurate with phantom overflow
+        let result = mul_div(Q128, U256::from(35).mul(Q128), U256::from(8).mul(Q128));
+        assert_eq!(result.unwrap(), U256::from(4375).mul(Q128).div(1000));
+
+        // Accurate with phantom overflow and repeating decimal
+        let result = mul_div(Q128, U256::from(1000).mul(Q128), U256::from(3000).mul(Q128));
         assert_eq!(result.unwrap(), Q128.div(3));
     }
 }
