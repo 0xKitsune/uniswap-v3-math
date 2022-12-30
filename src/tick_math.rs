@@ -1,4 +1,4 @@
-use std::ops::{BitAnd, Shl, Shr};
+use std::ops::{BitAnd, BitOr, Shl, Shr};
 
 use ethers::types::{I256, U256};
 
@@ -102,6 +102,118 @@ pub fn get_sqrt_ratio_at_tick(tick: i32) -> Result<U256, UniswapV3MathError> {
         } else {
             U256::one()
         })
+}
+
+pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3MathError> {
+    if !(sqrt_price_x_96 >= MIN_SQRT_RATIO && sqrt_price_x_96 < MAX_SQRT_RATIO) {
+        return Err(UniswapV3MathError::R());
+    }
+
+    let ratio = sqrt_price_x_96.shl(32);
+    let mut r = ratio;
+    let mut msb = U256::zero();
+
+    let mut f = if r > U256::from("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF") {
+        U256::one().shl(U256::from(7))
+    } else {
+        U256::one()
+    };
+    msb = msb.bitor(f);
+    r = r.shr(f);
+
+
+    f = if r > U256::from("0xFFFFFFFFFFFFFFFF") {
+        U256::one().shl(U256::from(6))
+    } else {
+        U256::one()
+    };
+    msb = msb.bitor(f);
+    r = r.shr(f);
+
+    f = if r > U256::from("0xFFFFFFFF") {
+        U256::one().shl(U256::from(5))
+    } else {
+        U256::one()
+    };
+    msb = msb.bitor(f);
+    r = r.shr(f);
+
+    f = if r > U256::from("0xFFFF") {
+        U256::one().shl(U256::from(4))
+    } else {
+        U256::one()
+    };
+    msb = msb.bitor(f);
+    r = r.shr(f);
+
+    f = if r > U256::from("0xFF") {
+        U256::one().shl(U256::from(3))
+    } else {
+        U256::one()
+    };
+    msb = msb.bitor(f);
+    r = r.shr(f);
+
+    f = if r > U256::from("0x3") {
+        U256::one().shl(U256::from(1))
+    } else {
+        U256::from(1)
+    };
+    msb = msb.bitor(f);
+    r = r.shr(f);
+
+    f = if r > U256::from("0x1") {
+        U256::one()
+    } else {
+        U256::zero()
+    };
+
+    msb = msb.bitor(f);
+
+    r = if msb >= U256::from(128) {
+        ratio.shr(msb - U256::from(127))
+    } else {
+        ratio.shl(U256::from(127) - msb)
+    };
+
+    let mut log_2: I256 = (I256::from_raw(msb) - I256::from(128)).shl(64);
+
+
+    //TODO: check if 51 needs to actually be 50
+    for i in (51..=63).rev() {
+        r = r.overflowing_mul(r).0.shr(U256::from(127));
+        let f = r.shr(128);
+        log_2 = log_2.bitor(I256::from_raw(f.shl(i)));
+
+        r = r.shr(f);
+    }   
+
+    r = r.overflowing_mul(r).0.shr(U256::from(127));
+    let f = r.shr(128);
+    log_2 = log_2.bitor(I256::from_raw(f.shl(50)));
+
+
+    let log_sqrt10001 = log_2.wrapping_mul( I256::from_dec_str("255738958999603826347141").unwrap());
+  
+    let tick_low = (log_sqrt10001.wrapping_sub(
+        I256::from_dec_str("3402992956809132418596140100660247210").unwrap()))
+    .shr(I256::from(128)).low_i32();
+
+    let tick_high = (log_sqrt10001.wrapping_add(
+        I256::from_dec_str("291339464771989622907027621153398088495").unwrap()))
+    .shr(I256::from(128)).low_i32();
+
+
+
+    let tick = if tick_low == tick_high {
+        tick_low
+    } else if get_sqrt_ratio_at_tick(tick_high)? <= sqrt_price_x_96 {
+        tick_high
+    } else {
+        tick_low
+    };
+
+    Ok(tick)
 }
 
 #[cfg(test)]
@@ -218,5 +330,16 @@ mod test {
             U256::from_dec_str("847134979253254120489401328389043031315994541").unwrap(),
             "sqrt ratio at 738203 incorrect"
         );
+    }
+
+    #[test]
+    pub fn test_get_tick_at_sqrt_ratio() {
+        //ratio of min tick
+        let result = get_tick_at_sqrt_ratio(MIN_SQRT_RATIO).unwrap();
+        assert_eq!(result, MIN_TICK);
+
+        //ratio of min tick + 1
+        let result = get_tick_at_sqrt_ratio(U256::from_dec_str("4295343490").unwrap()).unwrap();
+        assert_eq!(result, MIN_TICK + 1);
     }
 }
