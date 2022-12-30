@@ -31,6 +31,8 @@ pub enum UniswapV3MathError {
         "Second inequality must be < because the price can never reach the price at the max tick"
     )]
     R(),
+    #[error("Overflow when casting to U160")]
+    SafeCastToU160Overflow(),
     #[error("Middleware error when getting next_initialized_tick_within_one_word")]
     MiddlewareError(String),
 }

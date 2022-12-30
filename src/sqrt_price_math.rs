@@ -182,7 +182,13 @@ pub fn get_next_sqrt_price_from_amount_1_rounding_down(
             mul_div(amount, Q96, U256::from(liquidity))?
         };
 
-        Ok(sqrt_price_x_96 + quotient)
+        let next_sqrt_price = sqrt_price_x_96 + quotient;
+
+        if next_sqrt_price > MAX_U160 {
+            Err(UniswapV3MathError::SafeCastToU160Overflow())
+        } else {
+            Ok(next_sqrt_price)
+        }
     } else {
         let quotient = if amount <= MAX_U160 {
             div_rounding_up(amount.shl(FIXED_POINT_96_RESOLUTION), U256::from(liquidity))
@@ -302,7 +308,7 @@ mod test {
     use ethers::types::U256;
 
     use crate::{
-        sqrt_price_math::{_get_amount_1_delta, get_next_sqrt_price_from_output},
+        sqrt_price_math::{_get_amount_1_delta, get_next_sqrt_price_from_output, MAX_U160},
         utils,
     };
 
@@ -321,37 +327,28 @@ mod test {
         assert_eq!(result.unwrap_err().to_string(), "Sqrt price is 0");
 
         //fails if input amount overflows the price
-        let result = get_next_sqrt_price_from_input(
-            U256::from_dec_str("1461501637330902918203684832716283019655932542975").unwrap(),
-            1024,
-            U256::from(1024),
-            false,
+        let result = get_next_sqrt_price_from_input(MAX_U160, 1024, U256::from(1024), false);
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Overflow when casting to U160"
         );
 
-        assert_eq!(result.unwrap_err().to_string(), "Sqrt price is 0");
+        //any input amount cannot underflow the price'
+        let result = get_next_sqrt_price_from_input(
+            U256::one(),
+            1,
+            U256::from_dec_str(
+                "57896044618658097711785492504343953926634992332820282019728792003956564819968",
+            )
+            .unwrap(),
+            true,
+        );
 
-        // //any input amount cannot underflow the price'
-        // let result = get_next_sqrt_price_from_input(
-        //     U256::one(),
-        //     1,
-        //     U256::from_dec_str(
-        //         "57896044618658097711785492504343953926634992332820282019728792003956564819968",
-        //     )
-        //     .unwrap(),
-        //     true,
-        // );
-
-        // assert_eq!(result.unwrap(), U256::one());
+        assert_eq!(result.unwrap(), U256::one());
     }
 
     #[test]
-    fn test_get_amount_0_delta() {}
-
-    #[test]
-    fn test_get_amount_1_delta() {}
-
-    #[test]
-    fn test_get_amount_1_delta_private() {
+    fn test_get_amount_1_delta() {
         // returns 0 if liquidity is 0
         let amount_1 = _get_amount_1_delta(
             U256::from_dec_str("79228162514264337593543950336").unwrap(),
@@ -397,7 +394,7 @@ mod test {
     }
 
     #[test]
-    fn test_get_amount_0_delta_private() {
+    fn test_get_amount_0_delta() {
         // returns 0 if liquidity is 0
         let amount_0 = _get_amount_0_delta(
             U256::from_dec_str("79228162514264337593543950336").unwrap(),
