@@ -1,4 +1,4 @@
-use std::{ops::Neg};
+use std::ops::Neg;
 
 use ethers::types::{I256, U256};
 
@@ -41,28 +41,29 @@ pub fn compute_swap_step(
         )?;
 
         amount_in = if zero_for_one {
-            _get_amount_1_delta(
+            _get_amount_0_delta(
                 sqrt_ratio_target_x_96,
                 sqrt_ratio_current_x_96,
                 liquidity as i128,
                 true,
             )?
         } else {
-            _get_amount_0_delta(
+            _get_amount_1_delta(
                 sqrt_ratio_current_x_96,
                 sqrt_ratio_target_x_96,
                 liquidity as i128,
                 true,
             )?
         };
-
-        if amount_remaining_less_fee < amount_in {
+        if amount_remaining_less_fee >= amount_in {
+            sqrt_ratio_next_x_96 = sqrt_ratio_target_x_96;
+        } else {
             sqrt_ratio_next_x_96 = get_next_sqrt_price_from_input(
                 sqrt_ratio_current_x_96,
                 liquidity,
                 amount_remaining_less_fee,
                 zero_for_one,
-            )?
+            )?;
         }
     } else {
         amount_out = if zero_for_one {
@@ -150,5 +151,35 @@ pub fn compute_swap_step(
         )?;
 
         Ok((sqrt_ratio_next_x_96, amount_in, amount_out, fee_amount))
+    }
+}
+
+mod test {
+    use std::ops::{Add, Div, Mul, Sub};
+
+    use ethers::types::{I256, U256};
+
+    use crate::swap_math::compute_swap_step;
+
+    #[test]
+    fn test_compute_swap_step() {
+        //exact amount in that gets capped at price target in one for zero
+        //Fails if price is zero
+        let (sqrt_p, amount_in, amount_out, fee_amount) = compute_swap_step(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            U256::from_dec_str("79623317895830914510639640423").unwrap(),
+            2e18 as u128,
+            I256::from_dec_str("1000000000000000000").unwrap(),
+            600,
+        )
+        .unwrap();
+
+        assert_eq!(
+            sqrt_p,
+            U256::from_dec_str("79623317895830914510639640423").unwrap()
+        );
+        assert_eq!(amount_out, U256::from_dec_str("9925619580021728").unwrap());
+        assert_eq!(amount_in, U256::from_dec_str("9975124224178055").unwrap());
+        assert_eq!(fee_amount, U256::from_dec_str("5988667735148").unwrap());
     }
 }
