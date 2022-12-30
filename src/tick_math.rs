@@ -154,6 +154,14 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     msb = msb.bitor(f);
     r = r.shr(f);
 
+    f = if r > U256::from("0xF") {
+        U256::one().shl(U256::from(2))
+    } else {
+        U256::one()
+    };
+    msb = msb.bitor(f);
+    r = r.shr(f);
+
     f = if r > U256::from("0x3") {
         U256::one().shl(U256::from(1))
     } else {
