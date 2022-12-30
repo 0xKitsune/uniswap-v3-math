@@ -7,8 +7,12 @@ use crate::{
     full_math::{mul_div, mul_div_rounding_up},
     tick_math::get_sqrt_ratio_at_tick,
     unsafe_math::div_rounding_up,
-    utils::{self, ruint_to_u256, u256_to_ruint},
+    utils::{ruint_to_u256, u256_to_ruint},
 };
+
+pub const MAX_U160: U256 = U256([18446744073709551615, 18446744073709551615, 4294967295, 0]);
+pub const Q96: U256 = U256([0, 4294967296, 0, 0]);
+pub const FIXED_POINT_96_RESOLUTION: U256 = U256([96, 0, 0, 0]);
 
 // returns (sqrtQX96)
 pub fn get_next_sqrt_price_from_input(
@@ -172,29 +176,26 @@ pub fn get_next_sqrt_price_from_amount_1_rounding_down(
     add: bool,
 ) -> Result<U256, UniswapV3MathError> {
     if add {
-        let quotient = if amount <= U256::from("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF") {
-            amount.shl(96) / liquidity
+        let quotient = if amount <= MAX_U160 {
+            amount.shl(FIXED_POINT_96_RESOLUTION) / liquidity
         } else {
-            mul_div(
-                amount,
-                U256::from("0x1000000000000000000000000"),
-                U256::from(liquidity),
-            )?
+            mul_div(amount, Q96, U256::from(liquidity))?
         };
 
-        Ok(sqrt_price_x_96.overflowing_add(quotient).0)
+        Ok(sqrt_price_x_96 + quotient)
     } else {
-        let quotient = if amount <= U256::from("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF") {
-            div_rounding_up(amount.shl(96), U256::from(liquidity))
+        let quotient = if amount <= MAX_U160 {
+            div_rounding_up(amount.shl(FIXED_POINT_96_RESOLUTION), U256::from(liquidity))
         } else {
-            mul_div_rounding_up(
-                amount,
-                U256::from("0x1000000000000000000000000"),
-                U256::from(liquidity),
-            )?
+            mul_div_rounding_up(amount, Q96, U256::from(liquidity))?
         };
 
-        Ok(sqrt_price_x_96 - quotient)
+        //require(sqrtPX96 > quotient);
+        if sqrt_price_x_96 <= quotient {
+            return Err(UniswapV3MathError::SqrtPriceIsLteQuotient());
+        }
+
+        Ok(sqrt_price_x_96.overflowing_sub(quotient).0)
     }
 }
 
@@ -510,7 +511,7 @@ mod test {
         );
         assert_eq!(
             result.unwrap_err().to_string(),
-            "require((product = amount * sqrtPX96) / amount == sqrtPX96 && numerator1 > product);"
+            "Sqrt price is less than or equal to quotient"
         );
     }
 

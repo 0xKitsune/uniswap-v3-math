@@ -10,6 +10,8 @@ pub enum UniswapV3MathError {
     ResultIsU256MAX(),
     #[error("Sqrt price is 0")]
     SqrtPriceIsZero(),
+    #[error("Sqrt price is less than or equal to quotient")]
+    SqrtPriceIsLteQuotient(),
     #[error("Liquidity is 0")]
     LiquidityIsZero(),
     //TODO: Update this, shield your eyes for now
