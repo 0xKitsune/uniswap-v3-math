@@ -291,7 +291,43 @@ mod test {
 
     use crate::utils;
 
-    use super::{_get_amount_0_delta, get_amount_0_delta};
+    use super::{_get_amount_0_delta, get_amount_0_delta, get_next_sqrt_price_from_input};
+
+    #[test]
+    fn test_get_next_sqrt_price_from_input() {
+        //Fails if price is zero
+        let result = get_next_sqrt_price_from_input(
+            U256::zero(),
+            0,
+            U256::from(10000000000000000000_u128),
+            false,
+        );
+
+        assert_eq!(result.unwrap_err().to_string(), "Sqrt price is 0");
+
+        //fails if input amount overflows the price
+        let result = get_next_sqrt_price_from_input(
+            U256::from_dec_str("1461501637330902918203684832716283019655932542975").unwrap(),
+            1024,
+            U256::from(1024),
+            false,
+        );
+
+        assert_eq!(result.unwrap_err().to_string(), "Sqrt price is 0");
+
+        //any input amount cannot underflow the price'
+        let result = get_next_sqrt_price_from_input(
+            U256::one(),
+            1,
+            U256::from_dec_str(
+                "57896044618658097711785492504343953926634992332820282019728792003956564819968",
+            )
+            .unwrap(),
+            true,
+        );
+
+        assert_eq!(result.unwrap(), U256::one());
+    }
 
     #[test]
     fn test_get_amount_0_delta() {}
@@ -379,7 +415,4 @@ mod test {
 
     #[test]
     fn test_get_tick_at_sqrt_ratio() {}
-
-    #[test]
-    fn test_get_next_sqrt_price_from_input() {}
 }
