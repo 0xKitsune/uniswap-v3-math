@@ -349,7 +349,7 @@ mod test {
         //returns input price if amount in is zero and zeroForOne = true
         let result = get_next_sqrt_price_from_input(
             U256::from_dec_str("79228162514264337593543950336").unwrap(),
-            100000000000000000,
+            1e17 as u128,
             U256::zero(),
             true,
         );
@@ -362,7 +362,7 @@ mod test {
         //returns input price if amount in is zero and zeroForOne = false
         let result = get_next_sqrt_price_from_input(
             U256::from_dec_str("79228162514264337593543950336").unwrap(),
-            100000000000000000,
+            1e17 as u128,
             U256::zero(),
             true,
         );
@@ -384,7 +384,7 @@ mod test {
         //input amount of 0.1 token1
         let result = get_next_sqrt_price_from_input(
             U256::from_dec_str("79228162514264337593543950336").unwrap(),
-            1000000000000000000,
+            1e18 as u128,
             U256::from_dec_str("100000000000000000").unwrap(),
             false,
         );
@@ -397,7 +397,7 @@ mod test {
         //input amount of 0.1 token0
         let result = get_next_sqrt_price_from_input(
             U256::from_dec_str("79228162514264337593543950336").unwrap(),
-            1000000000000000000,
+            1e18 as u128,
             U256::from_dec_str("100000000000000000").unwrap(),
             true,
         );
@@ -432,6 +432,53 @@ mod test {
         assert_eq!(result.unwrap(), U256::one());
     }
 
+    #[test]
+    fn test_get_next_sqrt_price_from_output() {
+        //fails if price is zero
+        let result =
+            get_next_sqrt_price_from_output(U256::zero(), 0, U256::from(1000000000), false);
+        assert_eq!(result.unwrap_err().to_string(), "Sqrt price is 0");
+
+        //fails if liquidity is zero
+        let result = get_next_sqrt_price_from_output(U256::one(), 0, U256::from(1000000000), false);
+        assert_eq!(result.unwrap_err().to_string(), "Liquidity is 0");
+
+        //fails if output amount is exactly the virtual reserves of token0
+        let result = get_next_sqrt_price_from_output(
+            U256::from_dec_str("20282409603651670423947251286016").unwrap(),
+            1024,
+            U256::from(4),
+            false,
+        );
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "require((product = amount * sqrtPX96) / amount == sqrtPX96 && numerator1 > product);"
+        );
+
+        //fails if output amount is greater than virtual reserves of token0
+        let result = get_next_sqrt_price_from_output(
+            U256::from_dec_str("20282409603651670423947251286016").unwrap(),
+            1024,
+            U256::from(5),
+            false,
+        );
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "require((product = amount * sqrtPX96) / amount == sqrtPX96 && numerator1 > product);"
+        );
+
+        //fails if output amount is greater than virtual reserves of token1
+        let result = get_next_sqrt_price_from_output(
+            U256::from_dec_str("20282409603651670423947251286016").unwrap(),
+            1024,
+            U256::from(262145),
+            true,
+        );
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Sqrt price is less than or equal to quotient"
+        );
+    }
     #[test]
     fn test_get_amount_1_delta() {
         // returns 0 if liquidity is 0
@@ -548,54 +595,6 @@ mod test {
 
     #[test]
     fn test_get_next_sqrt_price_from_amount_0_rounding_up() {}
-
-    #[test]
-    fn test_get_next_sqrt_price_from_output() {
-        //fails if price is zero
-        let result =
-            get_next_sqrt_price_from_output(U256::zero(), 0, U256::from(1000000000), false);
-        assert_eq!(result.unwrap_err().to_string(), "Sqrt price is 0");
-
-        //fails if liquidity is zero
-        let result = get_next_sqrt_price_from_output(U256::one(), 0, U256::from(1000000000), false);
-        assert_eq!(result.unwrap_err().to_string(), "Liquidity is 0");
-
-        //fails if output amount is exactly the virtual reserves of token0
-        let result = get_next_sqrt_price_from_output(
-            U256::from_dec_str("20282409603651670423947251286016").unwrap(),
-            1024,
-            U256::from(4),
-            false,
-        );
-        assert_eq!(
-            result.unwrap_err().to_string(),
-            "require((product = amount * sqrtPX96) / amount == sqrtPX96 && numerator1 > product);"
-        );
-
-        //fails if output amount is greater than virtual reserves of token0
-        let result = get_next_sqrt_price_from_output(
-            U256::from_dec_str("20282409603651670423947251286016").unwrap(),
-            1024,
-            U256::from(5),
-            false,
-        );
-        assert_eq!(
-            result.unwrap_err().to_string(),
-            "require((product = amount * sqrtPX96) / amount == sqrtPX96 && numerator1 > product);"
-        );
-
-        //fails if output amount is greater than virtual reserves of token1
-        let result = get_next_sqrt_price_from_output(
-            U256::from_dec_str("20282409603651670423947251286016").unwrap(),
-            1024,
-            U256::from(262145),
-            true,
-        );
-        assert_eq!(
-            result.unwrap_err().to_string(),
-            "Sqrt price is less than or equal to quotient"
-        );
-    }
 
     #[test]
     fn test_swap_computation() {
