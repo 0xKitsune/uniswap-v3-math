@@ -478,6 +478,114 @@ mod test {
             result.unwrap_err().to_string(),
             "Sqrt price is less than or equal to quotient"
         );
+
+        //fails if output amount is exactly the virtual reserves of token1
+        let result = get_next_sqrt_price_from_output(
+            U256::from_dec_str("20282409603651670423947251286016").unwrap(),
+            1024,
+            U256::from(262144),
+            true,
+        );
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Sqrt price is less than or equal to quotient"
+        );
+
+        //succeeds if output amount is just less than the virtual
+        let result = get_next_sqrt_price_from_output(
+            U256::from_dec_str("20282409603651670423947251286016").unwrap(),
+            1024,
+            U256::from(262143),
+            true,
+        );
+        assert_eq!(
+            result.unwrap(),
+            U256::from_dec_str("77371252455336267181195264").unwrap()
+        );
+
+        //puzzling echidna test
+        let result = get_next_sqrt_price_from_output(
+            U256::from_dec_str("20282409603651670423947251286016").unwrap(),
+            1024,
+            U256::from(4),
+            false,
+        );
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "require((product = amount * sqrtPX96) / amount == sqrtPX96 && numerator1 > product);"
+        );
+
+        //returns input price if amount in is zero and zeroForOne = true
+        let result = get_next_sqrt_price_from_output(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            1e17 as u128,
+            U256::zero(),
+            true,
+        );
+        assert_eq!(
+            result.unwrap(),
+            U256::from_dec_str("79228162514264337593543950336").unwrap()
+        );
+
+        //returns input price if amount in is zero and zeroForOne = false
+        let result = get_next_sqrt_price_from_output(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            1e17 as u128,
+            U256::zero(),
+            false,
+        );
+        assert_eq!(
+            result.unwrap(),
+            U256::from_dec_str("79228162514264337593543950336").unwrap()
+        );
+
+        //output amount of 0.1 token1
+        let result = get_next_sqrt_price_from_output(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            1e18 as u128,
+            U256::from(1e17 as u128),
+            false,
+        );
+        assert_eq!(
+            result.unwrap(),
+            U256::from_dec_str("88031291682515930659493278152").unwrap()
+        );
+
+        //output amount of 0.1 token1
+        let result = get_next_sqrt_price_from_output(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            1e18 as u128,
+            U256::from(1e17 as u128),
+            true,
+        );
+        assert_eq!(
+            result.unwrap(),
+            U256::from_dec_str("71305346262837903834189555302").unwrap()
+        );
+
+        //reverts if amountOut is impossible in zero for one direction
+        let result = get_next_sqrt_price_from_output(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            1,
+            U256::MAX,
+            true,
+        );
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Denominator is less than or equal to prod_1"
+        );
+
+        //reverts if amountOut is impossible in one for zero direction
+        let result = get_next_sqrt_price_from_output(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            1,
+            U256::MAX,
+            false,
+        );
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "require((product = amount * sqrtPX96) / amount == sqrtPX96 && numerator1 > product);"
+        );
     }
     #[test]
     fn test_get_amount_1_delta() {
