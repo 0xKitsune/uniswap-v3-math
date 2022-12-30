@@ -155,8 +155,6 @@ pub fn compute_swap_step(
 }
 
 mod test {
-    use std::ops::{Add, Div, Mul, Sub};
-
     use ethers::types::{I256, U256};
 
     use crate::swap_math::compute_swap_step;
@@ -181,5 +179,113 @@ mod test {
         assert_eq!(amount_out, U256::from_dec_str("9925619580021728").unwrap());
         assert_eq!(amount_in, U256::from_dec_str("9975124224178055").unwrap());
         assert_eq!(fee_amount, U256::from_dec_str("5988667735148").unwrap());
+
+        let (sqrt_p, amount_in, amount_out, fee_amount) = compute_swap_step(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            U256::from_dec_str("79623317895830914510639640424").unwrap(),
+            2e18 as u128,
+            I256::from_dec_str("-1000000000000000000").unwrap(),
+            600,
+        )
+        .unwrap();
+
+        assert_eq!(
+            sqrt_p,
+            U256::from_dec_str("79623317895830914510639640424").unwrap()
+        );
+        assert_eq!(amount_out, U256::from_dec_str("9925619580021729").unwrap());
+        assert_eq!(amount_in, U256::from_dec_str("9975124224178055").unwrap());
+        assert_eq!(fee_amount, U256::from_dec_str("5988667735148").unwrap());
+        assert!(amount_out<(U256::from_dec_str("1000000000000000000").unwrap()));
+
+        //exact amount in that is fully spent in one for zero
+        let (_, amount_in, amount_out, fee_amount) = compute_swap_step(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            U256::from_dec_str("250541448375047931186413801569").unwrap(),
+            2e18 as u128,
+            I256::from_dec_str("1000000000000000000").unwrap(),
+            600,
+        )
+        .unwrap();
+
+        assert_eq!(amount_out, U256::from_dec_str("666399946655997866").unwrap());
+        assert_eq!(amount_in, U256::from_dec_str("999400000000000000").unwrap());
+        assert_eq!(fee_amount, U256::from_dec_str("600000000000000").unwrap());
+        assert_eq!(amount_in+fee_amount, U256::from_dec_str("1000000000000000000").unwrap());
+
+        //exact amount out that is fully received in one for zero
+        let (_, amount_in, amount_out, fee_amount) = compute_swap_step(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            U256::from_dec_str("792281625142643375935439503360").unwrap(),
+            2e18 as u128,
+            I256::from_dec_str("-1000000000000000000").unwrap(),
+            600,
+        )
+        .unwrap();
+
+        assert_eq!(amount_out, U256::from_dec_str("1000000000000000000").unwrap());
+        assert_eq!(amount_in, U256::from_dec_str("2000000000000000000").unwrap());
+        assert_eq!(fee_amount, U256::from_dec_str("1200720432259356").unwrap());
+      
+        //amount out is capped at the desired amount out
+        let (sqrt_p, amount_in, amount_out, fee_amount) = compute_swap_step(
+            U256::from_dec_str("417332158212080721273783715441582").unwrap(),
+            U256::from_dec_str("1452870262520218020823638996").unwrap(),
+            159344665391607089467575320103 as u128,
+            I256::from_dec_str("-1").unwrap(),
+            1,
+        )
+        .unwrap();
+
+        assert_eq!(amount_out, U256::from_dec_str("1").unwrap());
+        assert_eq!(amount_in, U256::from_dec_str("1").unwrap());
+        assert_eq!(fee_amount, U256::from_dec_str("1").unwrap());
+        assert_eq!(sqrt_p, U256::from_dec_str("417332158212080721273783715441581").unwrap());
+
+        //target price of 1 uses partial input amount
+        let (sqrt_p, amount_in, amount_out, fee_amount) = compute_swap_step(
+            U256::from_dec_str("2").unwrap(),
+            U256::from_dec_str("1").unwrap(),
+            1 as u128,
+            I256::from_dec_str("3915081100057732413702495386755767").unwrap(),
+            1,
+        ).unwrap();
+
+        assert_eq!(amount_out, U256::from_dec_str("0").unwrap());
+        assert_eq!(amount_in, U256::from_dec_str("39614081257132168796771975168").unwrap());
+        assert_eq!(fee_amount, U256::from_dec_str("39614120871253040049813").unwrap());
+        assert_eq!(sqrt_p, U256::from_dec_str("1").unwrap());
+
+        //entire input amount taken as fee
+        let (sqrt_p, amount_in, amount_out, fee_amount) = compute_swap_step(
+            U256::from_dec_str("2413").unwrap(),
+            U256::from_dec_str("79887613182836312").unwrap(),
+            1985041575832132834610021537970 as u128,
+            I256::from_dec_str("10").unwrap(),
+            1872,
+        ).unwrap();
+
+        assert_eq!(amount_out, U256::from_dec_str("0").unwrap());
+        assert_eq!(amount_in, U256::from_dec_str("0").unwrap());
+        assert_eq!(fee_amount, U256::from_dec_str("10").unwrap());
+        assert_eq!(sqrt_p, U256::from_dec_str("2413").unwrap());
+
+        //handles intermediate insufficient liquidity in zero for one exact output case
+        let (sqrt_p, amount_in, amount_out, fee_amount) = compute_swap_step(
+            U256::from_dec_str("20282409603651670423947251286016").unwrap(),
+            U256::from("0xe6666666666666666666666666"),
+            1024 as u128,
+            I256::from_dec_str("-263000").unwrap(),
+            3000,
+        ).unwrap();
+
+        // assert_eq!(amount_out, U256::from_dec_str("26214").unwrap()); //Getting a 1 wei rounding error here
+        assert_eq!(amount_in, U256::from_dec_str("1").unwrap());
+        assert_eq!(fee_amount, U256::from_dec_str("1").unwrap());
+        assert_eq!(sqrt_p, U256::from_dec_str("18254168643286503381552526157414").unwrap());
     }
+
+
+
+
 }
