@@ -333,7 +333,7 @@ mod test {
             "Overflow when casting to U160"
         );
 
-        //any input amount cannot underflow the price'
+        //any input amount cannot underflow the price
         let result = get_next_sqrt_price_from_input(
             U256::one(),
             1,
@@ -341,6 +341,91 @@ mod test {
                 "57896044618658097711785492504343953926634992332820282019728792003956564819968",
             )
             .unwrap(),
+            true,
+        );
+
+        assert_eq!(result.unwrap(), U256::one());
+
+        //returns input price if amount in is zero and zeroForOne = true
+        let result = get_next_sqrt_price_from_input(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            100000000000000000,
+            U256::zero(),
+            true,
+        );
+
+        assert_eq!(
+            result.unwrap(),
+            U256::from_dec_str("79228162514264337593543950336").unwrap()
+        );
+
+        //returns input price if amount in is zero and zeroForOne = false
+        let result = get_next_sqrt_price_from_input(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            100000000000000000,
+            U256::zero(),
+            true,
+        );
+
+        assert_eq!(
+            result.unwrap(),
+            U256::from_dec_str("79228162514264337593543950336").unwrap()
+        );
+
+        //returns the minimum price for max inputs
+
+        let sqrt_price = MAX_U160;
+        let liquidity = u128::MAX;
+        let max_amount_no_overflow = U256::MAX - ((U256::from(liquidity) << 96) / sqrt_price);
+        let result =
+            get_next_sqrt_price_from_input(sqrt_price, liquidity, max_amount_no_overflow, true);
+        assert_eq!(result.unwrap(), U256::one());
+
+        //input amount of 0.1 token1
+        let result = get_next_sqrt_price_from_input(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            1000000000000000000,
+            U256::from_dec_str("100000000000000000").unwrap(),
+            false,
+        );
+
+        assert_eq!(
+            result.unwrap(),
+            U256::from_dec_str("87150978765690771352898345369").unwrap()
+        );
+
+        //input amount of 0.1 token0
+        let result = get_next_sqrt_price_from_input(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            1000000000000000000,
+            U256::from_dec_str("100000000000000000").unwrap(),
+            true,
+        );
+
+        assert_eq!(
+            result.unwrap(),
+            U256::from_dec_str("72025602285694852357767227579").unwrap()
+        );
+
+        //amountIn > type(uint96).max and zeroForOne = true
+        let result = get_next_sqrt_price_from_input(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            10000000000000000000,
+            U256::from_dec_str("1267650600228229401496703205376").unwrap(),
+            true,
+        );
+        // perfect answer:
+        // https://www.wolframalpha.com/input/?i=624999999995069620+-+%28%281e19+*+1+%2F+%281e19+%2B+2%5E100+*+1%29%29+*+2%5E96%29
+        assert_eq!(
+            result.unwrap(),
+            U256::from_dec_str("624999999995069620").unwrap()
+        );
+
+        //can return 1 with enough amountIn and zeroForOne = true
+        let result = get_next_sqrt_price_from_input(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            1,
+            U256::MAX / 2,
             true,
         );
 
