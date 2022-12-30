@@ -285,7 +285,7 @@ pub fn get_amount_1_delta(
 
 #[cfg(test)]
 mod test {
-    use std::ops::{Div, Mul, Sub};
+    use std::ops::{Add, Div, Mul, Sub};
 
     use ethers::types::U256;
 
@@ -293,24 +293,13 @@ mod test {
 
     use super::{_get_amount_0_delta, get_amount_0_delta};
 
-    fn encode_price_sqrt(reserve_0: U256, reserve_1: U256) -> U256 {
-        let reserve_0 = utils::u256_to_ruint(reserve_0);
-        let reserve_1 = utils::u256_to_ruint(reserve_1);
-
-        let result = reserve_1
-            .div(reserve_0)
-            .root(2)
-            .mul(utils::RUINT_TWO.pow(utils::u256_to_ruint(U256::from(96))));
-
-        U256::from_little_endian(&result.as_le_bytes())
-    }
-
     #[test]
     fn test_get_amount_0_delta() {
         // returns 0 if liquidity is 0
+
         let amount_0 = _get_amount_0_delta(
-            encode_price_sqrt(U256::one(), U256::one()),
-            encode_price_sqrt(U256::from(2), U256::one()),
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
             0,
             true,
         );
@@ -319,8 +308,8 @@ mod test {
 
         // returns 0 if prices are equal
         let amount_0 = _get_amount_0_delta(
-            encode_price_sqrt(U256::one(), U256::one()),
-            encode_price_sqrt(U256::one(), U256::one()),
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            U256::from_dec_str("87150978765690771352898345369").unwrap(),
             0,
             true,
         );
@@ -329,9 +318,9 @@ mod test {
 
         // returns 0.1 amount1 for price of 1 to 1.21
         let amount_0 = _get_amount_0_delta(
-            encode_price_sqrt(U256::one(), U256::one()),
-            encode_price_sqrt(U256::from(121), U256::from(100)),
-            1e10 as i128,
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            U256::from_dec_str("87150978765690771352898345369").unwrap(),
+            1e18 as i128,
             true,
         )
         .unwrap();
@@ -342,29 +331,32 @@ mod test {
         );
 
         let amount_0_rounded_down = _get_amount_0_delta(
-            encode_price_sqrt(U256::one(), U256::one()),
-            encode_price_sqrt(U256::from(121), U256::from(100)),
-            1e10 as i128,
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            U256::from_dec_str("87150978765690771352898345369").unwrap(),
+            1e18 as i128,
             false,
         );
 
         assert_eq!(amount_0_rounded_down.unwrap(), amount_0.sub(1));
 
         // works for prices that overflow
-        let amount_0 = _get_amount_0_delta(
-            encode_price_sqrt(
-                U256::from("0x10000000000000000000000000000000000000000000000"),
-                U256::one(),
-            ),
-            encode_price_sqrt(
-                U256::from("100000000000000000000000000000000000000000000000000000000000000"),
-                U256::one(),
-            ),
-            1e10 as i128,
+        let amount_0_up = _get_amount_0_delta(
+            U256::from_dec_str("2787593149816327892691964784081045188247552").unwrap(),
+            U256::from_dec_str("22300745198530623141535718272648361505980416").unwrap(),
+            1e18 as i128,
             true,
-        );
+        )
+        .unwrap();
 
-        assert_eq!(amount_0.unwrap(), U256::zero());
+        let amount_0_down = _get_amount_0_delta(
+            U256::from_dec_str("2787593149816327892691964784081045188247552").unwrap(),
+            U256::from_dec_str("22300745198530623141535718272648361505980416").unwrap(),
+            1e18 as i128,
+            false,
+        )
+        .unwrap();
+
+        assert_eq!(amount_0_up, amount_0_down.add(1));
     }
 
     #[test]
