@@ -294,7 +294,16 @@ mod test {
     use super::{_get_amount_0_delta, get_amount_0_delta};
 
     #[test]
-    fn test_get_amount_0_delta() {
+    fn test_get_amount_0_delta() {}
+
+    #[test]
+    fn test_get_amount_1_delta() {}
+
+    #[test]
+    fn test_get_amount_1_delta_private() {}
+
+    #[test]
+    fn test_get_amount_0_delta_private() {
         // returns 0 if liquidity is 0
 
         let amount_0 = _get_amount_0_delta(
@@ -358,15 +367,6 @@ mod test {
 
         assert_eq!(amount_0_up, amount_0_down.add(1));
     }
-
-    #[test]
-    fn test_get_amount_1_delta() {}
-
-    #[test]
-    fn test_get_amount_1_delta_private() {}
-
-    #[test]
-    fn test_get_amount_0_delta_private() {}
 
     #[test]
     fn test_get_next_sqrt_price_from_amount_1_rounding_down() {}
