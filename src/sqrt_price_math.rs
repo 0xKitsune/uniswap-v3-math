@@ -289,7 +289,7 @@ mod test {
 
     use ethers::types::U256;
 
-    use crate::utils;
+    use crate::{sqrt_price_math::_get_amount_1_delta, utils};
 
     use super::{_get_amount_0_delta, get_amount_0_delta, get_next_sqrt_price_from_input};
 
@@ -336,12 +336,54 @@ mod test {
     fn test_get_amount_1_delta() {}
 
     #[test]
-    fn test_get_amount_1_delta_private() {}
+    fn test_get_amount_1_delta_private() {
+        // returns 0 if liquidity is 0
+        let amount_1 = _get_amount_1_delta(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            0,
+            true,
+        );
+
+        assert_eq!(amount_1.unwrap(), U256::zero());
+
+        // returns 0 if prices are equal
+        let amount_1 = _get_amount_1_delta(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            U256::from_dec_str("87150978765690771352898345369").unwrap(),
+            0,
+            true,
+        );
+
+        assert_eq!(amount_1.unwrap(), U256::zero());
+
+        // returns 0.1 amount1 for price of 1 to 1.21
+        let amount_1 = _get_amount_1_delta(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            U256::from_dec_str("87150978765690771352898345369").unwrap(),
+            1e18 as i128,
+            true,
+        )
+        .unwrap();
+
+        assert_eq!(
+            amount_1.clone(),
+            U256::from_dec_str("100000000000000000").unwrap()
+        );
+
+        let amount_1_rounded_down = _get_amount_1_delta(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            U256::from_dec_str("87150978765690771352898345369").unwrap(),
+            1e18 as i128,
+            false,
+        );
+
+        assert_eq!(amount_1_rounded_down.unwrap(), amount_1.sub(1));
+    }
 
     #[test]
     fn test_get_amount_0_delta_private() {
         // returns 0 if liquidity is 0
-
         let amount_0 = _get_amount_0_delta(
             U256::from_dec_str("79228162514264337593543950336").unwrap(),
             U256::from_dec_str("79228162514264337593543950336").unwrap(),
