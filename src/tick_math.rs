@@ -1,4 +1,4 @@
-use std::ops::{BitAnd, BitOr, Shl, Shr};
+use std::ops::{BitAnd, BitOr, Neg, Shl, Shr};
 
 use ethers::types::{I256, U256};
 
@@ -7,19 +7,12 @@ use crate::error::UniswapV3MathError;
 pub const MIN_TICK: i32 = -887272;
 pub const MAX_TICK: i32 = -MIN_TICK;
 
-pub const MIN_SQRT_RATIO: U256 = U256([285968860985, 0, 0, 0]);
-pub const MAX_SQRT_RATIO: U256 = U256([
-    9809463991923573570,
-    227557619515130776,
-    5049738529920590081,
-    1,
-]);
+pub const MIN_SQRT_RATIO: U256 = U256([4295128739, 0, 0, 0]);
+pub const MAX_SQRT_RATIO: U256 = U256([6743328256752651558, 17280870778742802505, 4294805859, 0]);
 
 pub fn get_sqrt_ratio_at_tick(tick: i32) -> Result<U256, UniswapV3MathError> {
     let abs_tick = if tick < 0 {
-        let le_bytes = &mut [0u8; 32];
-        (-I256::from(tick)).to_little_endian(le_bytes);
-        U256::from_little_endian(le_bytes)
+        U256::from_little_endian(&tick.neg().to_le_bytes())
     } else {
         U256::from(tick)
     };
@@ -116,16 +109,15 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     let mut f = if r > U256::from("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF") {
         U256::one().shl(U256::from(7))
     } else {
-        U256::one()
+        U256::zero()
     };
     msb = msb.bitor(f);
     r = r.shr(f);
 
-
     f = if r > U256::from("0xFFFFFFFFFFFFFFFF") {
         U256::one().shl(U256::from(6))
     } else {
-        U256::one()
+        U256::zero()
     };
     msb = msb.bitor(f);
     r = r.shr(f);
@@ -133,7 +125,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     f = if r > U256::from("0xFFFFFFFF") {
         U256::one().shl(U256::from(5))
     } else {
-        U256::one()
+        U256::zero()
     };
     msb = msb.bitor(f);
     r = r.shr(f);
@@ -141,7 +133,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     f = if r > U256::from("0xFFFF") {
         U256::one().shl(U256::from(4))
     } else {
-        U256::one()
+        U256::zero()
     };
     msb = msb.bitor(f);
     r = r.shr(f);
@@ -149,7 +141,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     f = if r > U256::from("0xFF") {
         U256::one().shl(U256::from(3))
     } else {
-        U256::one()
+        U256::zero()
     };
     msb = msb.bitor(f);
     r = r.shr(f);
@@ -157,7 +149,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     f = if r > U256::from("0xF") {
         U256::one().shl(U256::from(2))
     } else {
-        U256::one()
+        U256::zero()
     };
     msb = msb.bitor(f);
     r = r.shr(f);
@@ -165,7 +157,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     f = if r > U256::from("0x3") {
         U256::one().shl(U256::from(1))
     } else {
-        U256::from(1)
+        U256::zero()
     };
     msb = msb.bitor(f);
     r = r.shr(f);
@@ -186,32 +178,29 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
 
     let mut log_2: I256 = (I256::from_raw(msb) - I256::from(128)).shl(64);
 
-
-    //TODO: check if 51 needs to actually be 50
     for i in (51..=63).rev() {
         r = r.overflowing_mul(r).0.shr(U256::from(127));
         let f = r.shr(128);
         log_2 = log_2.bitor(I256::from_raw(f.shl(i)));
 
         r = r.shr(f);
-    }   
+    }
 
     r = r.overflowing_mul(r).0.shr(U256::from(127));
     let f = r.shr(128);
     log_2 = log_2.bitor(I256::from_raw(f.shl(50)));
 
+    let log_sqrt10001 = log_2.wrapping_mul(I256::from_dec_str("255738958999603826347141").unwrap());
 
-    let log_sqrt10001 = log_2.wrapping_mul( I256::from_dec_str("255738958999603826347141").unwrap());
-  
-    let tick_low = (log_sqrt10001.wrapping_sub(
-        I256::from_dec_str("3402992956809132418596140100660247210").unwrap()))
-    .shr(I256::from(128)).low_i32();
+    let tick_low = ((log_sqrt10001
+        - I256::from_dec_str("3402992956809132418596140100660247210").unwrap())
+        >> I256::from(128))
+    .low_i32();
 
-    let tick_high = (log_sqrt10001.wrapping_add(
-        I256::from_dec_str("291339464771989622907027621153398088495").unwrap()))
-    .shr(I256::from(128)).low_i32();
-
-
+    let tick_high = ((log_sqrt10001
+        + I256::from_dec_str("291339464771989622907027621153398088495").unwrap())
+        >> I256::from(128))
+    .low_i32();
 
     let tick = if tick_low == tick_high {
         tick_low
@@ -226,6 +215,8 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
 
 #[cfg(test)]
 mod test {
+    use std::ops::Sub;
+
     use super::*;
     use ethers::types::U256;
 
@@ -342,6 +333,14 @@ mod test {
 
     #[test]
     pub fn test_get_tick_at_sqrt_ratio() {
+        //throws for too low
+        let result = get_tick_at_sqrt_ratio(MIN_SQRT_RATIO.sub(1));
+        assert_eq!(result.unwrap_err().to_string(), "Second inequality must be < because the price can never reach the price at the max tick");
+
+        //throws for too high
+        let result = get_tick_at_sqrt_ratio(MAX_SQRT_RATIO);
+        assert_eq!(result.unwrap_err().to_string(), "Second inequality must be < because the price can never reach the price at the max tick");
+
         //ratio of min tick
         let result = get_tick_at_sqrt_ratio(MIN_SQRT_RATIO).unwrap();
         assert_eq!(result, MIN_TICK);
