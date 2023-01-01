@@ -159,7 +159,7 @@ pub fn get_next_sqrt_price_from_amount_1_rounding_down(
 ) -> Result<U256, UniswapV3MathError> {
     if add {
         let quotent = if amount <= U256::from("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF") {
-            amount << ((96) / liquidity)
+            amount << (96 / liquidity)
         } else {
             mul_div(
                 amount,
