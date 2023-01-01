@@ -80,5 +80,5 @@ pub async fn next_initialized_tick_within_one_word<M: Middleware>(
 
 // returns (int16 wordPos, uint8 bitPos)
 pub fn position(tick: i32) -> (i16, u8) {
-    ((tick >> (8)) as i16, (tick % 256) as u8)
+    ((tick >> 8) as i16, (tick % 256) as u8)
 }

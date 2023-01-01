@@ -123,13 +123,13 @@ pub fn mul_div_rounding_up(
 
     if mul_mod(a, b, denominator) > U256::zero() {
         if result == U256::MAX {
-            return Err(UniswapV3MathError::ResultIsU256MAX);
+            Err(UniswapV3MathError::ResultIsU256MAX)
         } else {
-            return Ok(result + 1);
+            Ok(result + 1)
         }
+    } else {
+        Ok(result)
     }
-
-    Ok(result)
 }
 
 #[cfg(test)]
