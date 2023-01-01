@@ -37,8 +37,8 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
 
     // Handle non-overflow cases, 256 by 256 division
     if prod_1.is_zero() {
-        if denominator == U256::zero() {
-            return Err(UniswapV3MathError::DenominatorIsZero());
+        if denominator.is_zero() {
+            return Err(UniswapV3MathError::DenominatorIsZero);
         }
         return Ok(prod_0 / denominator);
     }
@@ -46,7 +46,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
     // Make sure the result is less than 2**256.
     // Also prevents denominator == 0
     if denominator <= prod_1 {
-        return Err(UniswapV3MathError::DenominatorIsLteProdOne());
+        return Err(UniswapV3MathError::DenominatorIsLteProdOne);
     }
 
     ///////////////////////////////////////////////
@@ -123,7 +123,7 @@ pub fn mul_div_rounding_up(
 
     if mul_mod(a, b, denominator) > U256::zero() {
         if result == U256::MAX {
-            return Err(UniswapV3MathError::ResultIsU256MAX());
+            return Err(UniswapV3MathError::ResultIsU256MAX);
         } else {
             return Ok(result + 1);
         }

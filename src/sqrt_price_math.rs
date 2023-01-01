@@ -13,10 +13,10 @@ pub fn get_next_sqrt_price_from_input(
     amount_in: U256,
     zero_for_one: bool,
 ) -> Result<U256, UniswapV3MathError> {
-    if sqrt_price == U256::zero() {
-        return Err(UniswapV3MathError::SqrtPriceIsZero());
+    if sqrt_price.is_zero() {
+        return Err(UniswapV3MathError::SqrtPriceIsZero);
     } else if liquidity == 0 {
-        return Err(UniswapV3MathError::LiquidityIsZero());
+        return Err(UniswapV3MathError::LiquidityIsZero);
     }
 
     if zero_for_one {
@@ -30,7 +30,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     if !(sqrt_price_x_96 >= U256::from("0xFFFD8963EFD1FC6A506488495D951D5263988D26")
         && sqrt_price_x_96 < U256::from("4295128739"))
     {
-        return Err(UniswapV3MathError::R());
+        return Err(UniswapV3MathError::R);
     }
 
     let ratio = sqrt_price_x_96 << (32);
@@ -97,10 +97,10 @@ pub fn get_next_sqrt_price_from_output(
     amount_out: U256,
     zero_for_one: bool,
 ) -> Result<U256, UniswapV3MathError> {
-    if sqrt_price == U256::zero() {
-        return Err(UniswapV3MathError::SqrtPriceIsZero());
+    if sqrt_price.is_zero() {
+        return Err(UniswapV3MathError::SqrtPriceIsZero);
     } else if liquidity == 0 {
-        return Err(UniswapV3MathError::LiquidityIsZero());
+        return Err(UniswapV3MathError::LiquidityIsZero);
     }
 
     if zero_for_one {
@@ -145,7 +145,7 @@ pub fn get_next_sqrt_price_from_amount_0_rounding_up(
 
             mul_div_rounding_up(numerator_1, sqrt_price_x_96, denominator)
         } else {
-            Err(UniswapV3MathError::ProductDivAmount())
+            Err(UniswapV3MathError::ProductDivAmount)
         }
     }
 }
@@ -198,8 +198,8 @@ pub fn _get_amount_0_delta(
     let numerator_1 = U256::from(liquidity) << (96);
     let numerator_2 = sqrt_ratio_b_x_96 - sqrt_ratio_a_x_96;
 
-    if sqrt_ratio_a_x_96 == U256::zero() {
-        return Err(UniswapV3MathError::SqrtPriceIsZero());
+    if sqrt_ratio_a_x_96.is_zero() {
+        return Err(UniswapV3MathError::SqrtPriceIsZero);
     }
 
     if round_up {

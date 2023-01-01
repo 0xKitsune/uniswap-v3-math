@@ -22,7 +22,7 @@ pub fn get_sqrt_ratio_at_tick(tick: i32) -> Result<U256, UniswapV3MathError> {
     };
 
     if abs_tick > U256::from(MAX_TICK) {
-        return Err(UniswapV3MathError::T());
+        return Err(UniswapV3MathError::T);
     }
 
     let mut ratio = if abs_tick & (U256::from(0x1)) != U256::zero() {
@@ -94,7 +94,7 @@ pub fn get_sqrt_ratio_at_tick(tick: i32) -> Result<U256, UniswapV3MathError> {
     }
 
     Ok((ratio >> 32)
-        + if ratio % (U256::one() << (32)) == U256::zero() {
+        + if (ratio % (U256::one() << (32))).is_zero() {
             U256::zero()
         } else {
             U256::one()
@@ -110,12 +110,12 @@ mod test {
     fn get_sqrt_ratio_at_tick_bounds() {
         // the function should return an error if the tick is out of bounds
         if let Err(err) = get_sqrt_ratio_at_tick(MIN_TICK - 1) {
-            assert!(matches!(err, UniswapV3MathError::T()));
+            assert!(matches!(err, UniswapV3MathError::T));
         } else {
             panic!("get_qrt_ratio_at_tick did not respect lower tick bound")
         }
         if let Err(err) = get_sqrt_ratio_at_tick(MAX_TICK + 1) {
-            assert!(matches!(err, UniswapV3MathError::T()));
+            assert!(matches!(err, UniswapV3MathError::T));
         } else {
             panic!("get_qrt_ratio_at_tick did not respect upper tick bound")
         }
