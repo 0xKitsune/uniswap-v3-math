@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use ethers::types::U256;
 
 pub struct Tick {

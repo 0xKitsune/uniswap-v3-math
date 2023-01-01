@@ -1,5 +1,5 @@
 use ethers::types::U256;
-use std::ops::{Add, BitAnd, BitOr, BitOrAssign, BitXor, Div, Mul, MulAssign, Sub};
+use std::ops::{Add, BitAnd, BitOrAssign, BitXor, Div, Mul, MulAssign};
 
 use crate::{
     error::UniswapV3MathError,
@@ -30,7 +30,7 @@ pub fn mul_div(a: U256, b: U256, denominator: U256) -> Result<U256, UniswapV3Mat
     // Handle non-overflow cases, 256 by 256 division
     if prod_1 == RUINT_ZERO {
         if denominator == RUINT_ZERO {
-            return Err(UniswapV3MathError::DenominatorIsZero());
+            return Err(UniswapV3MathError::DenominatorIsZero);
         }
         return Ok(U256::from_little_endian(
             &prod_0.div(denominator).as_le_bytes(),
@@ -40,7 +40,7 @@ pub fn mul_div(a: U256, b: U256, denominator: U256) -> Result<U256, UniswapV3Mat
     // Make sure the result is less than 2**256.
     // Also prevents denominator == 0
     if denominator <= prod_1 {
-        return Err(UniswapV3MathError::DenominatorIsLteProdOne());
+        return Err(UniswapV3MathError::DenominatorIsLteProdOne);
     }
 
     ///////////////////////////////////////////////
@@ -106,8 +106,6 @@ pub fn mul_div(a: U256, b: U256, denominator: U256) -> Result<U256, UniswapV3Mat
     // We don't need to compute the high bits of the result and prod1
     // is no longer required.
 
-    //TODO: FIXME: prod0 and inv are off
-
     Ok(U256::from_little_endian(&(prod_0 * inv).as_le_bytes()))
 }
 
@@ -125,13 +123,42 @@ pub fn mul_div_rounding_up(
 
     if a.mul_mod(b, denominator) > RUINT_ZERO {
         if result == U256::MAX {
-            return Err(UniswapV3MathError::ResultIsU256MAX());
+            Err(UniswapV3MathError::ResultIsU256MAX)
         } else {
-            return Ok(result + 1);
+            Ok(result + 1)
         }
+    } else {
+        Ok(result)
     }
+}
 
-    Ok(result)
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ethers::types::U256;
+
+    const Q128: U256 = U256([0, 0, 1, 0]);
+
+    #[test]
+    fn test_mul_div() {
+        //Revert if the denominator is zero
+        let result = mul_div(Q128, U256::from(5), U256::zero());
+        assert_eq!(result.err().unwrap().to_string(), "Denominator is 0");
+
+        // Revert if the denominator is zero and numerator overflows
+        let result = mul_div(Q128, Q128, U256::zero());
+        assert_eq!(
+            result.err().unwrap().to_string(),
+            "Denominator is less than or equal to prod_1"
+        );
+
+        // Revert if the output overflows uint256
+        let result = mul_div(Q128, Q128, U256::one());
+        assert_eq!(
+            result.err().unwrap().to_string(),
+            "Denominator is less than or equal to prod_1"
+        );
+    }
 }
 
 #[cfg(test)]

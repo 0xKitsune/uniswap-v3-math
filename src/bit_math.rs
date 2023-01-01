@@ -8,7 +8,7 @@ pub fn most_significant_bit(mut x: U256) -> Result<u8, UniswapV3MathError> {
     let mut r = 0;
 
     if x.is_zero() {
-        return Err(UniswapV3MathError::ZeroValue());
+        return Err(UniswapV3MathError::ZeroValue);
     }
 
     if x >= U256::from("0x100000000000000000000000000000000") {
@@ -54,7 +54,7 @@ pub fn most_significant_bit(mut x: U256) -> Result<u8, UniswapV3MathError> {
 
 pub fn least_significant_bit(mut x: U256) -> Result<u8, UniswapV3MathError> {
     if x.is_zero() {
-        return Err(UniswapV3MathError::ZeroValue());
+        return Err(UniswapV3MathError::ZeroValue);
     }
 
     let mut r = 255;
@@ -115,7 +115,7 @@ mod test {
 
     use ethers::types::U256;
 
-    use crate::{bit_math::least_significant_bit, error::UniswapV3MathError};
+    use crate::bit_math::least_significant_bit;
 
     use super::most_significant_bit;
 

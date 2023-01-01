@@ -1,5 +1,3 @@
-use std::ops::Neg;
-
 use ethers::types::{I256, U256};
 
 use crate::{
@@ -27,11 +25,11 @@ pub fn compute_swap_step(
     let zero_for_one = sqrt_ratio_current_x_96 > sqrt_ratio_target_x_96;
     let exact_in = amount_remaining >= I256::zero();
 
-    let mut sqrt_ratio_next_x_96 = U256::zero();
+    let sqrt_ratio_next_x_96: U256;
     let mut amount_in = U256::zero();
     let mut amount_out = U256::zero();
 
-    let negative_amount_in_remaining = amount_remaining.neg().into_raw();
+    let negative_amount_in_remaining = (-amount_remaining).into_raw();
 
     if exact_in {
         let amount_remaining_less_fee = mul_div(
@@ -156,9 +154,11 @@ pub fn compute_swap_step(
 }
 
 mod test {
-    use ethers::types::{I256, U256};
 
+    #[allow(unused)]
     use crate::swap_math::compute_swap_step;
+    #[allow(unused)]
+    use ethers::types::{I256, U256};
 
     #[test]
     fn test_compute_swap_step() {
@@ -244,7 +244,7 @@ mod test {
         let (sqrt_p, amount_in, amount_out, fee_amount) = compute_swap_step(
             U256::from_dec_str("417332158212080721273783715441582").unwrap(),
             U256::from_dec_str("1452870262520218020823638996").unwrap(),
-            159344665391607089467575320103 as u128,
+            159344665391607089467575320103_u128,
             I256::from_dec_str("-1").unwrap(),
             1,
         )
@@ -262,7 +262,7 @@ mod test {
         let (sqrt_p, amount_in, amount_out, fee_amount) = compute_swap_step(
             U256::from_dec_str("2").unwrap(),
             U256::from_dec_str("1").unwrap(),
-            1 as u128,
+            1_u128,
             I256::from_dec_str("3915081100057732413702495386755767").unwrap(),
             1,
         )
@@ -283,7 +283,7 @@ mod test {
         let (sqrt_p, amount_in, amount_out, fee_amount) = compute_swap_step(
             U256::from_dec_str("2413").unwrap(),
             U256::from_dec_str("79887613182836312").unwrap(),
-            1985041575832132834610021537970 as u128,
+            1985041575832132834610021537970_u128,
             I256::from_dec_str("10").unwrap(),
             1872,
         )
@@ -298,7 +298,7 @@ mod test {
         let (sqrt_p, amount_in, amount_out, fee_amount) = compute_swap_step(
             U256::from_dec_str("20282409603651670423947251286016").unwrap(),
             U256::from_dec_str("22310650564016837466341976414617").unwrap(),
-            1024 as u128,
+            1024_u128,
             I256::from_dec_str("-4").unwrap(),
             3000,
         )
@@ -316,7 +316,7 @@ mod test {
         let (sqrt_p, amount_in, amount_out, fee_amount) = compute_swap_step(
             U256::from_dec_str("20282409603651670423947251286016").unwrap(),
             U256::from_dec_str("18254168643286503381552526157414").unwrap(),
-            1024 as u128,
+            1024_u128,
             I256::from_dec_str("-263000").unwrap(),
             3000,
         )

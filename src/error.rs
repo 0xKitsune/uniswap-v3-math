@@ -1,40 +1,39 @@
 use thiserror::Error;
 
+// TODO: make these errors better, some errors in univ3 libs are just require(condition) without a message.
 #[derive(Error, Debug)]
-
-//TODO: make these errors better, some errors in univ3 libs are just require(condition) without a message.
 pub enum UniswapV3MathError {
     #[error("Denominator is 0")]
-    DenominatorIsZero(),
+    DenominatorIsZero,
     #[error("Result is U256::MAX")]
-    ResultIsU256MAX(),
+    ResultIsU256MAX,
     #[error("Sqrt price is 0")]
-    SqrtPriceIsZero(),
+    SqrtPriceIsZero,
     #[error("Sqrt price is less than or equal to quotient")]
-    SqrtPriceIsLteQuotient(),
+    SqrtPriceIsLteQuotient,
     #[error("Can not get most significant bit or least significant bit on zero value")]
-    ZeroValue(),
+    ZeroValue,
     #[error("Liquidity is 0")]
-    LiquidityIsZero(),
+    LiquidityIsZero,
     //TODO: Update this, shield your eyes for now
     #[error(
         "require((product = amount * sqrtPX96) / amount == sqrtPX96 && numerator1 > product);"
     )]
-    ProductDivAmount(),
+    ProductDivAmount,
     #[error("Denominator is less than or equal to prod_1")]
-    DenominatorIsLteProdOne(),
+    DenominatorIsLteProdOne,
     #[error("Liquidity Sub")]
-    LiquiditySub(),
+    LiquiditySub,
     #[error("Liquidity Add")]
-    LiquidityAdd(),
+    LiquidityAdd,
     #[error("The given tick must be less than, or equal to, the maximum tick")]
-    T(),
+    T,
     #[error(
         "Second inequality must be < because the price can never reach the price at the max tick"
     )]
-    R(),
+    R,
     #[error("Overflow when casting to U160")]
-    SafeCastToU160Overflow(),
+    SafeCastToU160Overflow,
     #[error("Middleware error when getting next_initialized_tick_within_one_word")]
     MiddlewareError(String),
 }
