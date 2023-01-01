@@ -12,6 +12,8 @@ pub enum UniswapV3MathError {
     SqrtPriceIsZero(),
     #[error("Sqrt price is less than or equal to quotient")]
     SqrtPriceIsLteQuotient(),
+    #[error("Can not get most significant bit or least significant bit on zero value")]
+    ZeroValue(),
     #[error("Liquidity is 0")]
     LiquidityIsZero(),
     //TODO: Update this, shield your eyes for now
