@@ -132,6 +132,22 @@ mod test {
         //2
         let result = most_significant_bit(U256::from(2));
         assert_eq!(result.unwrap(), 1);
+
+        //all powers of 2
+
+        for i in 0..=255 {
+            let result = most_significant_bit(U256::from(2).pow(U256::from(i)));
+            assert_eq!(result.unwrap(), i as u8);
+        }
+
+        //uint256(-1)
+        let result = most_significant_bit(
+            U256::from_dec_str(
+                "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+            )
+            .unwrap(),
+        );
+        assert_eq!(result.unwrap(), 255);
     }
 
     fn test_least_significant_bit() {}
