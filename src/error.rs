@@ -29,6 +29,6 @@ pub enum UniswapV3MathError {
         "Second inequality must be < because the price can never reach the price at the max tick"
     )]
     R,
-    #[error("Middleware error when getting next_initialized_tick_within_one_word")]
+    #[error("Middleware error when getting next_initialized_tick_within_one_word: {0}")]
     MiddlewareError(String),
 }
