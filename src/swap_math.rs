@@ -7,7 +7,6 @@ use crate::{
     },
 };
 use ethers::types::{I256, U256};
-use std::ops::Neg;
 
 // //returns (
 //         uint160 sqrtRatioNextX96,
@@ -29,7 +28,7 @@ pub fn compute_swap_step(
     let mut amount_in = U256::zero();
     let mut amount_out = U256::zero();
 
-    let negative_amount_in_remaining = amount_remaining.neg().into_raw();
+    let negative_amount_in_remaining = (-amount_remaining).into_raw();
 
     if exact_in {
         let amount_remaining_less_fee = mul_div(

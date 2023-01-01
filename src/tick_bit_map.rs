@@ -15,7 +15,7 @@ pub async fn next_initialized_tick_within_one_word<M: Middleware>(
     pool_address: H160,
     middleware: Arc<M>,
 ) -> Result<(i32, bool), UniswapV3MathError> {
-    let compressed = if tick < 0 && tick % tick_spacing != 0 {
+    let compressed = if tick.is_negative() && tick % tick_spacing != 0 {
         (tick / tick_spacing) - 1
     } else {
         tick / tick_spacing

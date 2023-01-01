@@ -241,7 +241,7 @@ pub fn get_amount_0_delta(
     sqrt_ratio_b_x_96: U256,
     liquidity: i128,
 ) -> Result<I256, UniswapV3MathError> {
-    if liquidity < 0 {
+    if liquidity.is_negative() {
         Ok(-I256::from_raw(_get_amount_0_delta(
             sqrt_ratio_b_x_96,
             sqrt_ratio_a_x_96,
@@ -263,7 +263,7 @@ pub fn get_amount_1_delta(
     sqrt_ratio_b_x_96: U256,
     liquidity: i128,
 ) -> Result<I256, UniswapV3MathError> {
-    if liquidity < 0 {
+    if liquidity.is_negative() {
         Ok(-I256::from_raw(_get_amount_1_delta(
             sqrt_ratio_b_x_96,
             sqrt_ratio_a_x_96,
