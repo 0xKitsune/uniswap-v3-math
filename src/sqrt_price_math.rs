@@ -33,7 +33,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
         return Err(UniswapV3MathError::R);
     }
 
-    let ratio = sqrt_price_x_96 << (32);
+    let ratio = sqrt_price_x_96 << 32;
     let mut r = ratio;
     let mut msb = U256::zero();
 
@@ -58,7 +58,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
         r = ratio << (U256::from(127) - msb);
     }
 
-    let mut log_2: I256 = (I256::from_raw(msb) - I256::from(128)) << (64);
+    let mut log_2: I256 = (I256::from_raw(msb) - I256::from(128)) << 64;
 
     for i in (51..=63).rev() {
         r = U256::from(127) >> (r * r);
@@ -121,7 +121,7 @@ pub fn get_next_sqrt_price_from_amount_0_rounding_up(
         return Ok(sqrt_price_x_96);
     }
 
-    let numerator_1 = U256::from(liquidity) << (96);
+    let numerator_1 = U256::from(liquidity) << 96;
 
     if add {
         let product = amount * sqrt_price_x_96;
@@ -171,7 +171,7 @@ pub fn get_next_sqrt_price_from_amount_1_rounding_down(
         Ok(sqrt_price_x_96 + quotent)
     } else {
         let quotent = if amount <= U256::from("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF") {
-            div_rounding_up(amount << (96), U256::from(liquidity))
+            div_rounding_up(amount << 96, U256::from(liquidity))
         } else {
             mul_div_rounding_up(
                 amount,
@@ -195,7 +195,7 @@ pub fn _get_amount_0_delta(
         (sqrt_ratio_a_x_96, sqrt_ratio_b_x_96) = (sqrt_ratio_b_x_96, sqrt_ratio_a_x_96)
     };
 
-    let numerator_1 = U256::from(liquidity) << (96);
+    let numerator_1 = U256::from(liquidity) << 96;
     let numerator_2 = sqrt_ratio_b_x_96 - sqrt_ratio_a_x_96;
 
     if sqrt_ratio_a_x_96.is_zero() {
