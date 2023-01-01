@@ -69,10 +69,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
     // Factor powers of two out of denominator
     // Compute largest power of two divisor of denominator.
     // Always >= 1.
-    let mut twos = U256::zero()
-        .overflowing_sub(denominator)
-        .0
-        .bitand(denominator);
+    let mut twos = U256::zero().overflowing_sub(denominator).0 & (denominator);
 
     // Divide denominator by power of two
     //TODO: this is in an assembly block, this should be able to underflow
@@ -89,7 +86,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
     //TODO: this is in an assembly block, this should be able to underflow
     twos = (U256::zero().overflowing_sub(twos).0 / twos) + U256::one();
 
-    prod_0.bitor_assign(prod_1 * twos);
+    prod_0 |= (prod_1 * twos);
 
     // Invert denominator mod 2**256
     // Now that denominator is an odd number, it has an inverse
@@ -139,7 +136,6 @@ pub fn mul_div_rounding_up(
 
 #[cfg(test)]
 mod test {
-    
 
     use ethers::types::U256;
 

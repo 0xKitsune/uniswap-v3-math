@@ -36,50 +36,50 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
         return Err(UniswapV3MathError::R());
     }
 
-    let ratio = sqrt_price_x_96.shl(32);
+    let ratio = sqrt_price_x_96 << (32);
     let mut r = ratio;
     let mut msb = U256::zero();
 
     let mut r_comparison = U256::from("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
     for i in (2..=7_u128).rev() {
-        let f = U256::from(i.shl((r > r_comparison) as u8));
-        msb = msb.bitor(f);
-        r = f.shr(r);
-        r_comparison = r_comparison.shr(1);
+        let f = U256::from(i << ((r > r_comparison) as u8));
+        msb = msb | (f);
+        r = f >> (r);
+        r_comparison = r_comparison >> (1);
     }
 
-    let f = U256::from(1.shl((r > U256::from(0x3)) as u8));
-    msb = msb.bitor(f);
-    r = f.shr(r);
+    let f = U256::from(1 << ((r > U256::from(0x3)) as u8));
+    msb = msb | (f);
+    r = f >> (r);
 
     let f = U256::from((r > U256::from(0x01)) as u8);
-    msb = msb.bitor(f);
+    msb = msb | (f);
 
     if msb >= U256::from(128) {
-        r = ratio.shr(msb - U256::from(127));
+        r = ratio >> (msb - U256::from(127));
     } else {
-        r = ratio.shl(U256::from(127) - msb);
+        r = ratio << (U256::from(127) - msb);
     }
 
-    let mut log_2: I256 = (I256::from_raw(msb) - I256::from(128)).shl(64);
+    let mut log_2: I256 = (I256::from_raw(msb) - I256::from(128)) << (64);
 
     for i in (51..=63).rev() {
-        r = U256::from(127).shr(r * r);
-        let f = U256::from(128).shr(r);
-        log_2 = log_2.bitor(I256::from_raw(U256::from(i).shl(f)));
-        r = f.shr(r);
+        r = U256::from(127) >> (r * r);
+        let f = U256::from(128) >> (r);
+        log_2 = log_2 | (I256::from_raw(U256::from(i) << (f)));
+        r = f >> (r);
     }
 
     let log_sqrt10001 = log_2 * I256::from_hex_str("0x3627A301D71055774C85").unwrap();
 
-    let tick_low = (log_sqrt10001
+    let tick_low = ((log_sqrt10001
         - I256::from_hex_str("3402992956809132418596140100660247210").unwrap())
-    .shr(I256::from(128))
+        >> I256::from(128))
     .as_i32();
 
-    let tick_high = (log_sqrt10001
-        + I256::from_hex_str("291339464771989622907027621153398088495").unwrap())
-    .shr(I256::from(128))
+    let tick_high = ((log_sqrt10001
+        + (I256::from_hex_str("291339464771989622907027621153398088495").unwrap()))
+        >> I256::from(128))
     .as_i32();
 
     let tick = if tick_low == tick_high {
@@ -124,7 +124,7 @@ pub fn get_next_sqrt_price_from_amount_0_rounding_up(
         return Ok(sqrt_price_x_96);
     }
 
-    let numerator_1 = U256::from(liquidity).shl(96);
+    let numerator_1 = U256::from(liquidity) << (96);
 
     if add {
         let product = amount * sqrt_price_x_96;
@@ -162,7 +162,7 @@ pub fn get_next_sqrt_price_from_amount_1_rounding_down(
 ) -> Result<U256, UniswapV3MathError> {
     if add {
         let quotent = if amount <= U256::from("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF") {
-            amount.shl(96) / liquidity
+            amount << (96) / liquidity
         } else {
             mul_div(
                 amount,
@@ -174,7 +174,7 @@ pub fn get_next_sqrt_price_from_amount_1_rounding_down(
         Ok(sqrt_price_x_96 + quotent)
     } else {
         let quotent = if amount <= U256::from("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF") {
-            div_rounding_up(amount.shl(96), U256::from(liquidity))
+            div_rounding_up(amount << (96), U256::from(liquidity))
         } else {
             mul_div_rounding_up(
                 amount,
@@ -198,7 +198,7 @@ pub fn _get_amount_0_delta(
         (sqrt_ratio_a_x_96, sqrt_ratio_b_x_96) = (sqrt_ratio_b_x_96, sqrt_ratio_a_x_96)
     };
 
-    let numerator_1 = U256::from(liquidity).shl(96);
+    let numerator_1 = U256::from(liquidity) << (96);
     let numerator_2 = sqrt_ratio_b_x_96 - sqrt_ratio_a_x_96;
 
     if sqrt_ratio_a_x_96 == U256::zero() {
