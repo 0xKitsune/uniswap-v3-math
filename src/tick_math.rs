@@ -13,7 +13,7 @@ pub const MAX_SQRT_RATIO: U256 = U256([
 ]);
 
 pub fn get_sqrt_ratio_at_tick(tick: i32) -> Result<U256, UniswapV3MathError> {
-    let abs_tick = if tick.is_negative() {
+    let abs_tick = if tick < 0 {
         let le_bytes = &mut [0u8; 32];
         (-I256::from(tick)).to_little_endian(le_bytes);
         U256::from_little_endian(le_bytes)
