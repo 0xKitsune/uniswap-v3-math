@@ -115,7 +115,7 @@ mod test {
 
     use ethers::types::U256;
 
-    use crate::{bit_math::least_significant_bit, error::UniswapV3MathError};
+    use crate::bit_math::least_significant_bit;
 
     use super::most_significant_bit;
 

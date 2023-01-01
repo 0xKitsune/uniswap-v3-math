@@ -1,7 +1,6 @@
 use crate::{
     error::UniswapV3MathError,
     full_math::{mul_div, mul_div_rounding_up},
-    tick_math::get_sqrt_ratio_at_tick,
     unsafe_math::div_rounding_up,
     utils::{ruint_to_u256, u256_to_ruint},
 };
@@ -236,16 +235,13 @@ pub fn get_amount_1_delta(
 
 #[cfg(test)]
 mod test {
-    use std::ops::{Add, Div, Mul, Sub};
+    use std::ops::{Add, Sub};
 
     use ethers::types::U256;
 
-    use crate::{
-        sqrt_price_math::{_get_amount_1_delta, get_next_sqrt_price_from_output, MAX_U160},
-        utils,
-    };
+    use crate::sqrt_price_math::{_get_amount_1_delta, get_next_sqrt_price_from_output, MAX_U160};
 
-    use super::{_get_amount_0_delta, get_amount_0_delta, get_next_sqrt_price_from_input};
+    use super::{_get_amount_0_delta, get_next_sqrt_price_from_input};
 
     #[test]
     fn test_get_next_sqrt_price_from_input() {

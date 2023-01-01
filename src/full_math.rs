@@ -1,5 +1,5 @@
 use ethers::types::U256;
-use std::ops::{Add, BitAnd, BitOr, BitOrAssign, BitXor, Div, Mul, MulAssign, Sub};
+use std::ops::{Add, BitAnd, BitOrAssign, BitXor, Div, Mul, MulAssign};
 
 use crate::{
     error::UniswapV3MathError,
