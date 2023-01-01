@@ -1,8 +1,7 @@
 use thiserror::Error;
 
+// TODO: make these errors better, some errors in univ3 libs are just require(condition) without a message.
 #[derive(Error, Debug)]
-
-//TODO: make these errors better, some errors in univ3 libs are just require(condition) without a message.
 pub enum UniswapV3MathError {
     #[error("Denominator is 0")]
     DenominatorIsZero,

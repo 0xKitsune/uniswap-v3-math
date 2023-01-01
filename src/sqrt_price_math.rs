@@ -75,7 +75,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     .as_i32();
 
     let tick_high = ((log_sqrt10001
-        + (I256::from_hex_str("291339464771989622907027621153398088495").unwrap()))
+        + I256::from_hex_str("291339464771989622907027621153398088495").unwrap())
         >> I256::from(128))
     .as_i32();
 

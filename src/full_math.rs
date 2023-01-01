@@ -133,13 +133,10 @@ pub fn mul_div_rounding_up(
 }
 
 #[cfg(test)]
-mod test {
-
-    use ethers::types::U256;
-
+mod tests {
+    use super::*;
     use crate::full_math::mul_mod;
-
-    use super::mul_div;
+    use ethers::types::U256;
 
     const Q128: U256 = U256([0, 0, 1, 0]);
 
