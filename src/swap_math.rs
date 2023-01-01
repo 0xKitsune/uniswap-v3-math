@@ -10,7 +10,6 @@ use crate::{
         get_next_sqrt_price_from_output,
     },
 };
-use ethers::types::{I256, U256};
 
 // //returns (
 //         uint160 sqrtRatioNextX96,

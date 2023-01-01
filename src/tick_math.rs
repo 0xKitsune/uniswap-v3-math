@@ -3,7 +3,6 @@ use std::ops::{BitAnd, BitOr, Neg, Shl, Shr};
 use ethers::types::{I256, U256};
 
 use crate::error::UniswapV3MathError;
-use ethers::types::{I256, U256};
 
 pub const MIN_TICK: i32 = -887272;
 pub const MAX_TICK: i32 = -MIN_TICK;
@@ -100,7 +99,7 @@ pub fn get_sqrt_ratio_at_tick(tick: i32) -> Result<U256, UniswapV3MathError> {
 
 pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3MathError> {
     if !(sqrt_price_x_96 >= MIN_SQRT_RATIO && sqrt_price_x_96 < MAX_SQRT_RATIO) {
-        return Err(UniswapV3MathError::R());
+        return Err(UniswapV3MathError::R);
     }
 
     let ratio = sqrt_price_x_96.shl(32);
@@ -216,9 +215,9 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
 
 #[cfg(test)]
 mod test {
-    use std::ops::Sub;
     use super::*;
     use ethers::types::U256;
+    use std::ops::Sub;
 
     #[test]
     fn get_sqrt_ratio_at_tick_bounds() {

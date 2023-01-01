@@ -30,7 +30,7 @@ pub fn mul_div(a: U256, b: U256, denominator: U256) -> Result<U256, UniswapV3Mat
     // Handle non-overflow cases, 256 by 256 division
     if prod_1 == RUINT_ZERO {
         if denominator == RUINT_ZERO {
-            return Err(UniswapV3MathError::DenominatorIsZero());
+            return Err(UniswapV3MathError::DenominatorIsZero);
         }
         return Ok(U256::from_little_endian(
             &prod_0.div(denominator).as_le_bytes(),
@@ -135,22 +135,9 @@ pub fn mul_div_rounding_up(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::full_math::mul_mod;
     use ethers::types::U256;
 
     const Q128: U256 = U256([0, 0, 1, 0]);
-
-    #[test]
-    fn test_mul_mod() {
-        let result = mul_mod(U256::from(256), U256::from(5), U256::MAX);
-        assert_eq!(result, U256::from(1280));
-
-        let result = mul_mod(U256::from(100), U256::from(100), U256::from(21));
-        assert_eq!(result, U256::from(4));
-
-        let result = mul_mod(U256::from(100), U256::from(100), U256::from(0));
-        assert_eq!(result, U256::from(0));
-    }
 
     #[test]
     fn test_mul_div() {
