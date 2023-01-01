@@ -67,7 +67,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
     // Factor powers of two out of denominator
     // Compute largest power of two divisor of denominator.
     // Always >= 1.
-    let mut twos = U256::zero().overflowing_sub(denominator).0 & (denominator);
+    let mut twos = U256::zero().overflowing_sub(denominator).0 & denominator;
 
     // Divide denominator by power of two
     //TODO: this is in an assembly block, this should be able to underflow

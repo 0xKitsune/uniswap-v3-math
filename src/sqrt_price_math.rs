@@ -41,13 +41,13 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     for i in (2..=7_u128).rev() {
         let f = U256::from(i << ((r > r_comparison) as u8));
         msb |= f;
-        r = f >> (r);
+        r = f >> r;
         r_comparison >>= 1;
     }
 
     let f = U256::from(1 << ((r > U256::from(0x3)) as u8));
     msb |= f;
-    r = f >> (r);
+    r = f >> r;
 
     let f = U256::from((r > U256::from(0x01)) as u8);
     msb |= f;
@@ -62,9 +62,9 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
 
     for i in (51..=63).rev() {
         r = U256::from(127) >> (r * r);
-        let f = U256::from(128) >> (r);
-        log_2 |= I256::from_raw(U256::from(i) << (f));
-        r = f >> (r);
+        let f = U256::from(128) >> r;
+        log_2 |= I256::from_raw(U256::from(i) << f);
+        r = f >> r;
     }
 
     let log_sqrt10001 = log_2 * I256::from_hex_str("0x3627A301D71055774C85").unwrap();
