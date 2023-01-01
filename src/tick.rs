@@ -11,11 +11,3 @@ pub struct Tick {
     pub seconds_outside: u32,
     pub initialized: bool,
 }
-
-pub fn cross(tick_mapping: HashMap<i32, Tick>, tick: i32) -> i128 {
-    if let Some(tick) = tick_mapping.get(&tick) {
-        tick.liquidity_net
-    } else {
-        0
-    }
-}
