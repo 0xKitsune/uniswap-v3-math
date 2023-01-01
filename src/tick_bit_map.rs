@@ -1,14 +1,9 @@
-use std::{
-    ops::{BitAnd, Shl, Shr},
-    sync::Arc,
-};
-
+use crate::{abi, error::UniswapV3MathError};
 use ethers::{
     providers::Middleware,
     types::{H160, U256},
 };
-
-use crate::{abi, error::UniswapV3MathError};
+use std::sync::Arc;
 
 //Returns next and initialized
 //current_word is the current word in the TickBitmap of the pool based on `tick`. TickBitmap[word_pos] = current_word

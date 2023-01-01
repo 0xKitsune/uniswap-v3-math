@@ -1,8 +1,6 @@
+use crate::error::UniswapV3MathError;
 use ethers::types::U256;
 use ruint::Uint;
-use std::ops::{BitAnd, BitOrAssign};
-
-use crate::error::UniswapV3MathError;
 
 pub fn mul_mod(a: U256, b: U256, denominator: U256) -> U256 {
     let mut a_le_bytes = [0_u8; 32];
@@ -86,7 +84,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
     //TODO: this is in an assembly block, this should be able to underflow
     twos = (U256::zero().overflowing_sub(twos).0 / twos) + U256::one();
 
-    prod_0 |= (prod_1 * twos);
+    prod_0 |= prod_1 * twos;
 
     // Invert denominator mod 2**256
     // Now that denominator is an odd number, it has an inverse

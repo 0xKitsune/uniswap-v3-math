@@ -1,13 +1,10 @@
-use std::ops::{BitOr, Shl, Shr};
-
-use ethers::types::{I256, U256};
-
 use crate::{
     error::UniswapV3MathError,
     full_math::{mul_div, mul_div_rounding_up},
     tick_math::get_sqrt_ratio_at_tick,
     unsafe_math::div_rounding_up,
 };
+use ethers::types::{I256, U256};
 
 // returns (sqrtQX96)
 pub fn get_next_sqrt_price_from_input(
@@ -43,17 +40,17 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     let mut r_comparison = U256::from("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
     for i in (2..=7_u128).rev() {
         let f = U256::from(i << ((r > r_comparison) as u8));
-        msb = msb | (f);
+        msb |= f;
         r = f >> (r);
-        r_comparison = r_comparison >> (1);
+        r_comparison >>= 1;
     }
 
     let f = U256::from(1 << ((r > U256::from(0x3)) as u8));
-    msb = msb | (f);
+    msb |= f;
     r = f >> (r);
 
     let f = U256::from((r > U256::from(0x01)) as u8);
-    msb = msb | (f);
+    msb |= f;
 
     if msb >= U256::from(128) {
         r = ratio >> (msb - U256::from(127));
@@ -66,7 +63,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     for i in (51..=63).rev() {
         r = U256::from(127) >> (r * r);
         let f = U256::from(128) >> (r);
-        log_2 = log_2 | (I256::from_raw(U256::from(i) << (f)));
+        log_2 |= I256::from_raw(U256::from(i) << (f));
         r = f >> (r);
     }
 
@@ -162,7 +159,7 @@ pub fn get_next_sqrt_price_from_amount_1_rounding_down(
 ) -> Result<U256, UniswapV3MathError> {
     if add {
         let quotent = if amount <= U256::from("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF") {
-            amount << (96) / liquidity
+            amount << ((96) / liquidity)
         } else {
             mul_div(
                 amount,

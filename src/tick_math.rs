@@ -1,8 +1,5 @@
-use std::ops::{BitAnd, Shl, Shr};
-
-use ethers::types::{I256, U256};
-
 use crate::error::UniswapV3MathError;
+use ethers::types::{I256, U256};
 
 pub const MIN_TICK: i32 = -887272;
 pub const MAX_TICK: i32 = -MIN_TICK;

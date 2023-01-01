@@ -1,7 +1,3 @@
-use std::{ops::Neg};
-
-use ethers::types::{I256, U256};
-
 use crate::{
     error::UniswapV3MathError,
     full_math::{mul_div, mul_div_rounding_up},
@@ -10,6 +6,8 @@ use crate::{
         get_next_sqrt_price_from_output,
     },
 };
+use ethers::types::{I256, U256};
+use std::ops::Neg;
 
 // //returns (
 //         uint160 sqrtRatioNextX96,
