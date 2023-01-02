@@ -39,9 +39,9 @@ pub async fn next_initialized_tick_within_one_word<M: Middleware>(
 
         let next = if initialized {
             let most_significant_bit = bit_math::most_significant_bit(masked)?;
-            compressed - ((bit_pos.overflowing_sub(most_significant_bit).0) as i32 & tick_spacing)
+            (compressed - (bit_pos.overflowing_sub(most_significant_bit).0) as i32) * tick_spacing
         } else {
-            compressed - (bit_pos as i32 * tick_spacing)
+            (compressed - bit_pos as i32) * tick_spacing
         };
 
         Ok((next, initialized))
