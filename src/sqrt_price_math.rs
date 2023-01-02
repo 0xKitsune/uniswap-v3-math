@@ -323,40 +323,40 @@ mod test {
             U256::from_dec_str("87150978765690771352898345369").unwrap()
         );
 
-        // //input amount of 0.1 token0
-        // let result = get_next_sqrt_price_from_input(
-        //     U256::from_dec_str("79228162514264337593543950336").unwrap(),
-        //     1e18 as u128,
-        //     U256::from_dec_str("100000000000000000").unwrap(),
-        //     true,
-        // );
+        //input amount of 0.1 token0
+        let result = get_next_sqrt_price_from_input(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            1e18 as u128,
+            U256::from_dec_str("100000000000000000").unwrap(),
+            true,
+        );
 
-        // assert_eq!(
-        //     result.unwrap(),
-        //     U256::from_dec_str("72025602285694852357767227579").unwrap()
-        // );
+        assert_eq!(
+            result.unwrap(),
+            U256::from_dec_str("72025602285694852357767227579").unwrap()
+        );
 
-        // //amountIn > type(uint96).max and zeroForOne = true
-        // let result = get_next_sqrt_price_from_input(
-        //     U256::from_dec_str("79228162514264337593543950336").unwrap(),
-        //     10000000000000000000,
-        //     U256::from_dec_str("1267650600228229401496703205376").unwrap(),
-        //     true,
-        // );
-        // // perfect answer:
-        // // https://www.wolframalpha.com/input/?i=624999999995069620+-+%28%281e19+*+1+%2F+%281e19+%2B+2%5E100+*+1%29%29+*+2%5E96%29
-        // assert_eq!(
-        //     result.unwrap(),
-        //     U256::from_dec_str("624999999995069620").unwrap()
-        // );
+        //amountIn > type(uint96).max and zeroForOne = true
+        let result = get_next_sqrt_price_from_input(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            10000000000000000000,
+            U256::from_dec_str("1267650600228229401496703205376").unwrap(),
+            true,
+        );
+        // perfect answer:
+        // https://www.wolframalpha.com/input/?i=624999999995069620+-+%28%281e19+*+1+%2F+%281e19+%2B+2%5E100+*+1%29%29+*+2%5E96%29
+        assert_eq!(
+            result.unwrap(),
+            U256::from_dec_str("624999999995069620").unwrap()
+        );
 
-        // //can return 1 with enough amountIn and zeroForOne = true
-        // let result = get_next_sqrt_price_from_input(
-        //     U256::from_dec_str("79228162514264337593543950336").unwrap(),
-        //     1,
-        //     U256::MAX / 2,
-        //     true,
-        // );
+        //can return 1 with enough amountIn and zeroForOne = true
+        let result = get_next_sqrt_price_from_input(
+            U256::from_dec_str("79228162514264337593543950336").unwrap(),
+            1,
+            U256::MAX / 2,
+            true,
+        );
 
         // assert_eq!(result.unwrap(), U256::one());
     }
