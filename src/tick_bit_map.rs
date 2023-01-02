@@ -38,8 +38,11 @@ pub async fn next_initialized_tick_within_one_word<M: Middleware>(
         let initialized = !masked.is_zero();
 
         let next = if initialized {
-            let most_significant_bit = bit_math::most_significant_bit(masked)?;
-            (compressed - (bit_pos.overflowing_sub(most_significant_bit).0) as i32) * tick_spacing
+            (compressed
+                - (bit_pos
+                    .overflowing_sub(bit_math::most_significant_bit(masked)?)
+                    .0) as i32)
+                * tick_spacing
         } else {
             (compressed - bit_pos as i32) * tick_spacing
         };
@@ -61,11 +64,14 @@ pub async fn next_initialized_tick_within_one_word<M: Middleware>(
         let initialized = !masked.is_zero();
 
         let next = if initialized {
-            let least_significant_bit = bit_math::least_significant_bit(masked)?;
-            (compressed + 1 + (least_significant_bit.overflowing_sub(bit_pos).0) as i32)
+            (compressed
+                + 1
+                + (bit_math::least_significant_bit(masked)?
+                    .overflowing_sub(bit_pos)
+                    .0) as i32)
                 * tick_spacing
         } else {
-            (compressed + 1 + 0xFF - bit_pos as i32) * tick_spacing
+            (compressed + 1 + ((0xFF - bit_pos) as i32)) * tick_spacing
         };
 
         Ok((next, initialized))
