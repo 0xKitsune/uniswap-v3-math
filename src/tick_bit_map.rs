@@ -1,14 +1,9 @@
-use std::{
-    ops::{BitAnd, Shl, Shr},
-    sync::Arc,
-};
-
+use crate::{abi, bit_math, error::UniswapV3MathError};
 use ethers::{
     providers::Middleware,
     types::{H160, U256},
 };
-
-use crate::{abi, error::UniswapV3MathError};
+use std::sync::Arc;
 
 //Returns next and initialized
 //current_word is the current word in the TickBitmap of the pool based on `tick`. TickBitmap[word_pos] = current_word
@@ -28,8 +23,7 @@ pub async fn next_initialized_tick_within_one_word<M: Middleware>(
 
     if lte {
         let (word_pos, bit_pos) = position(compressed);
-        let mask = (U256::one().shl(bit_pos)) - 1 + (U256::one().shl(bit_pos));
-
+        let mask = (U256::one() << bit_pos) - 1 + (U256::one() << bit_pos);
         let word = match abi::IUniswapV3Pool::new(pool_address, middleware)
             .tick_bitmap(word_pos)
             .call()
@@ -39,14 +33,12 @@ pub async fn next_initialized_tick_within_one_word<M: Middleware>(
             Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
         };
 
-        let masked = word.bitand(mask);
+        let masked = word & mask;
 
         let initialized = !masked.is_zero();
 
         let next = if initialized {
-            let be_bytes = &mut [0u8; 32];
-            masked.to_big_endian(be_bytes);
-            let most_significant_bit = be_bytes[0];
+            let most_significant_bit = bit_math::most_significant_bit(masked)?;
             compressed - ((bit_pos.overflowing_sub(most_significant_bit).0) as i32 & tick_spacing)
         } else {
             compressed - (bit_pos as i32 * tick_spacing)
@@ -55,8 +47,7 @@ pub async fn next_initialized_tick_within_one_word<M: Middleware>(
         Ok((next, initialized))
     } else {
         let (word_pos, bit_pos) = position(compressed + 1);
-        let mask = !((U256::one().shl(bit_pos)) - U256::one());
-
+        let mask = !((U256::one() << bit_pos) - U256::one());
         let word = match abi::IUniswapV3Pool::new(pool_address, middleware)
             .tick_bitmap(word_pos)
             .call()
@@ -66,13 +57,11 @@ pub async fn next_initialized_tick_within_one_word<M: Middleware>(
             Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
         };
 
-        let masked = word.bitand(mask);
+        let masked = word & mask;
         let initialized = !masked.is_zero();
 
         let next = if initialized {
-            let le_bytes = &mut [0u8; 32];
-            masked.to_little_endian(le_bytes);
-            let least_significant_bit = le_bytes[0];
+            let least_significant_bit = bit_math::least_significant_bit(masked)?;
             (compressed + 1 + (least_significant_bit.overflowing_sub(bit_pos).0) as i32)
                 * tick_spacing
         } else {
@@ -85,5 +74,5 @@ pub async fn next_initialized_tick_within_one_word<M: Middleware>(
 
 // returns (int16 wordPos, uint8 bitPos)
 pub fn position(tick: i32) -> (i16, u8) {
-    (tick.shr(8) as i16, (tick % 256) as u8)
+    ((tick >> 8) as i16, (tick % 256) as u8)
 }
