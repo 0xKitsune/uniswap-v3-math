@@ -358,7 +358,7 @@ mod test {
             true,
         );
 
-        // assert_eq!(result.unwrap(), U256::one());
+        assert_eq!(result.unwrap(), U256::one());
     }
 
     #[test]
