@@ -181,7 +181,7 @@ mod test {
         assert_eq!(fee_amount, U256::from_dec_str("5988667735148").unwrap());
         assert_eq!(amount_out, U256::from_dec_str("9925619580021728").unwrap());
 
-        let mut le_bytes = [0_u8; 32];
+        let mut le_bytes = [0 as u8; 32];
         amount.to_little_endian(&mut le_bytes);
         assert!(amount_in + fee_amount < U256::from_little_endian(&mut le_bytes));
 
@@ -209,7 +209,7 @@ mod test {
         assert_eq!(amount_out, U256::from_dec_str("9925619580021728").unwrap());
         assert!(amount_out < (amount * -I256::one()).into_raw());
 
-        let mut le_bytes = [0_u8; 32];
+        let mut le_bytes = [0 as u8; 32];
         amount.to_little_endian(&mut le_bytes);
         assert!(amount_in + fee_amount < U256::from_little_endian(&mut le_bytes));
 
