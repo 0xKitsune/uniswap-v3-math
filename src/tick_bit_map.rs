@@ -75,9 +75,8 @@ pub async fn next_initialized_tick_within_one_word_from_provider<M: Middleware>(
         let (word_pos, bit_pos) = position(compressed);
         let mask = (U256::one() << bit_pos) - 1 + (U256::one() << bit_pos);
 
-        let word;
-        if block_number.is_some() {
-            word = match abi::IUniswapV3Pool::new(pool_address, middleware)
+        let word: U256 = if block_number.is_some() {
+            match abi::IUniswapV3Pool::new(pool_address, middleware)
                 .tick_bitmap(word_pos)
                 .block(block_number.unwrap())
                 .call()
@@ -85,17 +84,17 @@ pub async fn next_initialized_tick_within_one_word_from_provider<M: Middleware>(
             {
                 Ok(word) => word,
                 Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
-            };
+            }
         } else {
-            word = match abi::IUniswapV3Pool::new(pool_address, middleware)
+            match abi::IUniswapV3Pool::new(pool_address, middleware)
                 .tick_bitmap(word_pos)
                 .call()
                 .await
             {
                 Ok(word) => word,
                 Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
-            };
-        }
+            }
+        };
 
         let masked = word & mask;
 
@@ -115,9 +114,9 @@ pub async fn next_initialized_tick_within_one_word_from_provider<M: Middleware>(
     } else {
         let (word_pos, bit_pos) = position(compressed + 1);
         let mask = !((U256::one() << bit_pos) - U256::one());
-        let word;
-        if block_number.is_some() {
-            word = match abi::IUniswapV3Pool::new(pool_address, middleware)
+
+        let word: U256 = if block_number.is_some() {
+            match abi::IUniswapV3Pool::new(pool_address, middleware)
                 .tick_bitmap(word_pos)
                 .block(block_number.unwrap())
                 .call()
@@ -125,17 +124,17 @@ pub async fn next_initialized_tick_within_one_word_from_provider<M: Middleware>(
             {
                 Ok(word) => word,
                 Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
-            };
+            }
         } else {
-            word = match abi::IUniswapV3Pool::new(pool_address, middleware)
+            match abi::IUniswapV3Pool::new(pool_address, middleware)
                 .tick_bitmap(word_pos)
                 .call()
                 .await
             {
                 Ok(word) => word,
                 Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
-            };
-        }
+            }
+        };
 
         let masked = word & mask;
         let initialized = !masked.is_zero();
