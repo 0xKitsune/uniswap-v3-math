@@ -8,7 +8,7 @@ use std::sync::Arc;
 //Returns next and initialized
 //current_word is the current word in the TickBitmap of the pool based on `tick`. TickBitmap[word_pos] = current_word
 //Where word_pos is the 256 bit offset of the ticks word_pos.. word_pos := tick >> 8
-pub async fn next_initialized_tick_within_one_word(
+pub fn next_initialized_tick_within_one_word(
     tick_spacing: i32,
     lte: bool,
     compressed: i32,
