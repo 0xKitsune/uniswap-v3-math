@@ -194,13 +194,13 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
 
     let tick_low = ((log_sqrt10001
         - I256::from_dec_str("3402992956809132418596140100660247210").unwrap())
-        >> I256::from(128))
-    .low_i32();
+        >> 128_u8)
+        .low_i32();
 
     let tick_high = ((log_sqrt10001
         + I256::from_dec_str("291339464771989622907027621153398088495").unwrap())
-        >> I256::from(128))
-    .low_i32();
+        >> 128_u8)
+        .low_i32();
 
     let tick = if tick_low == tick_high {
         tick_low
