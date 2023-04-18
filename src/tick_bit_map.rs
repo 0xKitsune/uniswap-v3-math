@@ -3,7 +3,7 @@ use ethers::{
     providers::Middleware,
     types::{BlockNumber, H160, U256},
 };
-use std::{sync::Arc, collections::HashMap};
+use std::{collections::HashMap, sync::Arc};
 
 //Returns next and initialized
 //current_word is the current word in the TickBitmap of the pool based on `tick`. TickBitmap[word_pos] = current_word
@@ -40,7 +40,7 @@ pub fn next_initialized_tick_within_one_word(
         let mask = !((U256::one() << bit_pos) - U256::one());
 
         let masked = tick_bitmap[&word_pos] & mask;
-        
+
         let initialized = !masked.is_zero();
 
         let next = if initialized {
