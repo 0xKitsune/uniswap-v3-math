@@ -3,22 +3,25 @@ use ethers::{
     providers::Middleware,
     types::{BlockNumber, H160, U256},
 };
-use std::sync::Arc;
+use std::{sync::Arc, collections::HashMap};
 
 //Returns next and initialized
 //current_word is the current word in the TickBitmap of the pool based on `tick`. TickBitmap[word_pos] = current_word
 //Where word_pos is the 256 bit offset of the ticks word_pos.. word_pos := tick >> 8
 pub fn next_initialized_tick_within_one_word(
+    tick_bitmap: HashMap<i16, U256>,
+    tick: i32,
     tick_spacing: i32,
     lte: bool,
-    compressed: i32,
-    bit_pos: u8,
-    word: U256,
 ) -> Result<(i32, bool), UniswapV3MathError> {
+    let compressed = tick / tick_spacing;
+
+    let (word_pos, bit_pos) = position(compressed);
+
     if lte {
         let mask = (U256::one() << bit_pos) - 1 + (U256::one() << bit_pos);
 
-        let masked = word & mask;
+        let masked = tick_bitmap[&word_pos] & mask;
 
         let initialized = !masked.is_zero();
 
@@ -36,7 +39,8 @@ pub fn next_initialized_tick_within_one_word(
     } else {
         let mask = !((U256::one() << bit_pos) - U256::one());
 
-        let masked = word & mask;
+        let masked = tick_bitmap[&word_pos] & mask;
+        
         let initialized = !masked.is_zero();
 
         let next = if initialized {
