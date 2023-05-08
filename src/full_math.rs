@@ -116,7 +116,6 @@ pub fn mul_div_rounding_up(
 ) -> Result<U256, UniswapV3MathError> {
     let result = mul_div(a, b, denominator)?;
 
-    //TODO: not optimal, update this
     let a = u256_to_ruint(a);
     let b = u256_to_ruint(b);
     let denominator = u256_to_ruint(denominator);
