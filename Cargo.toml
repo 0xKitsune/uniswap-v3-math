@@ -12,5 +12,6 @@ exclude = ["target/*", ".github/*", ".gitignore", "Uniswap/*"]
 
 [dependencies]
 ethers = { version = "2.0.0", default-features = false, features = ["abigen"] }
+eyre = "0.6.8"
 ruint = "1.7.0"
 thiserror = "1.0.38"

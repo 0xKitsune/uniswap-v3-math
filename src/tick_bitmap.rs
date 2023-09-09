@@ -5,6 +5,22 @@ use ethers::{
 };
 use std::{collections::HashMap, sync::Arc};
 
+pub fn flip_tick(
+    tick_bitmap: &mut HashMap<i16, U256>,
+    tick: i32,
+    tick_spacing: i32,
+) -> Result<(), UniswapV3MathError> {
+    if (tick % tick_spacing) != 0 {
+        return Err(UniswapV3MathError::TickSpacingError);
+    }
+
+    let (word_pos, bit_pos) = position(tick / tick_spacing);
+    let mask = U256::one() << bit_pos;
+    let binding = U256::zero();
+    let word = tick_bitmap.get(&word_pos).unwrap_or(&binding);
+    tick_bitmap.insert(word_pos, *word ^ mask);
+    Ok(())
+}
 //Returns next and initialized
 //current_word is the current word in the TickBitmap of the pool based on `tick`. TickBitmap[word_pos] = current_word
 //Where word_pos is the 256 bit offset of the ticks word_pos.. word_pos := tick >> 8
@@ -161,4 +177,84 @@ pub async fn next_initialized_tick_within_one_word_from_provider<M: Middleware>(
 // returns (int16 wordPos, uint8 bitPos)
 pub fn position(tick: i32) -> (i16, u8) {
     ((tick >> 8) as i16, (tick % 256) as u8)
+}
+
+#[cfg(test)]
+mod test {
+    use std::{collections::HashMap, vec};
+
+    use ethers::types::U256;
+
+    use super::{flip_tick, next_initialized_tick_within_one_word};
+
+    pub fn init_test_ticks() -> eyre::Result<HashMap<i16, U256>> {
+        let test_ticks = vec![-200, -55, -4, 70, 78, 84, 139, 240, 535];
+        let mut tick_bitmap: HashMap<i16, U256> = HashMap::new();
+        for tick in test_ticks {
+            flip_tick(&mut tick_bitmap, tick, 1)?;
+        }
+        Ok(tick_bitmap)
+    }
+    #[test]
+    pub fn test_next_initialized_tick_within_one_word() -> eyre::Result<()> {
+        let mut tick_bitmap = init_test_ticks()?;
+        //returns tick to right if at initialized tick
+        let (next, initialized) =
+            next_initialized_tick_within_one_word(&tick_bitmap, 78, 1, false)?;
+
+        assert_eq!(next, 84);
+        assert_eq!(initialized, true);
+
+        //returns the tick directly to the right
+        let (next, initialized) =
+            next_initialized_tick_within_one_word(&tick_bitmap, 77, 1, false)?;
+
+        assert_eq!(next, 78);
+        assert_eq!(initialized, true);
+
+        //returns the tick directly to the right
+        let (next, initialized) =
+            next_initialized_tick_within_one_word(&tick_bitmap, -56, 1, false)?;
+
+        assert_eq!(next, -55);
+        assert_eq!(initialized, true);
+        //returns the next words initialized tick if on the right boundary
+        let (next, initialized) =
+            next_initialized_tick_within_one_word(&tick_bitmap, 255, 1, false)?;
+
+        assert_eq!(next, 511);
+        assert_eq!(initialized, false);
+        //returns the next words initialized tick if on the right boundary
+        let (next, initialized) =
+            next_initialized_tick_within_one_word(&tick_bitmap, -257, 1, false)?;
+
+        assert_eq!(next, -200);
+        assert_eq!(initialized, true);
+        //returns the next initialized tick from the next word
+        flip_tick(&mut tick_bitmap, 340, 1)?;
+        let (next, initialized) =
+            next_initialized_tick_within_one_word(&tick_bitmap, 328, 1, false)?;
+
+        assert_eq!(next, 340);
+        assert_eq!(initialized, true);
+        //does not exceed boundary
+        let (next, initialized) =
+            next_initialized_tick_within_one_word(&tick_bitmap, 508, 1, false)?;
+
+        assert_eq!(next, 511);
+        assert_eq!(initialized, false);
+        //skips entire word
+        let (next, initialized) =
+            next_initialized_tick_within_one_word(&tick_bitmap, 255, 1, false)?;
+
+        assert_eq!(next, 511);
+        assert_eq!(initialized, false);
+        //skips half word
+        let (next, initialized) =
+            next_initialized_tick_within_one_word(&tick_bitmap, 383, 1, false)?;
+
+        assert_eq!(next, 511);
+        assert_eq!(initialized, false);
+        Ok(())
+    }
 }
