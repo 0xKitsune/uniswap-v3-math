@@ -16,9 +16,8 @@ pub fn flip_tick(
 
     let (word_pos, bit_pos) = position(tick / tick_spacing);
     let mask = U256::one() << bit_pos;
-    let binding = U256::zero();
-    let word = tick_bitmap.get(&word_pos).unwrap_or(&binding);
-    tick_bitmap.insert(word_pos, *word ^ mask);
+    let word = *tick_bitmap.get(&word_pos).unwrap_or(&U256::zero());
+    tick_bitmap.insert(word_pos, word ^ mask);
     Ok(())
 }
 
