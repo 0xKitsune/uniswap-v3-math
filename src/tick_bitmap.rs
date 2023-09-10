@@ -347,77 +347,66 @@ mod test {
     }
 
     #[test]
-    pub fn test_initialized_0() -> eyre::Result<()> {
+    pub fn test_initialized() -> eyre::Result<()> {
         //is false at first
         let mut tick_bitmap: HashMap<i16, U256> = HashMap::new();
-        let initialized_0 = initialized(1, &tick_bitmap)?;
+        let is_initialized = initialized(1, &tick_bitmap)?;
 
-        assert_eq!(initialized_0, false);
+        assert_eq!(is_initialized, false);
         //is flipped by #flipTick
         flip_tick(&mut tick_bitmap, 1, 1)?;
-        let initialized_1 = initialized(1, &tick_bitmap)?;
-        assert_eq!(initialized_1, true);
+        let is_initialized: bool = initialized(1, &tick_bitmap)?;
+        assert_eq!(is_initialized, true);
 
-        Ok(())
-    }
-    #[test]
-    pub fn test_initialized_1() -> eyre::Result<()> {
-        let mut tick_bitmap: HashMap<i16, U256> = HashMap::new();
         //is flipped back by #flipTick
+        tick_bitmap.clear();
         flip_tick(&mut tick_bitmap, 1, 1)?;
         flip_tick(&mut tick_bitmap, 1, 1)?;
-        let initialized_2 = initialized(1, &tick_bitmap)?;
-        assert_eq!(initialized_2, false);
-        Ok(())
-    }
+        let is_initialized = initialized(1, &tick_bitmap)?;
+        assert_eq!(is_initialized, false);
 
-    #[test]
-    pub fn test_initialized_2() -> eyre::Result<()> {
         //is not changed by another flip to a different tick
-        let mut tick_bitmap: HashMap<i16, U256> = HashMap::new();
+        tick_bitmap.clear();
         flip_tick(&mut tick_bitmap, 2, 1)?;
-        let initialized = initialized(1, &tick_bitmap)?;
-        assert_eq!(initialized, false);
+        let is_initialized = initialized(1, &tick_bitmap)?;
+        assert_eq!(is_initialized, false);
+
+        //is not changed by another flip to a different tick on another word
+        tick_bitmap.clear();
+        flip_tick(&mut tick_bitmap, 1 + 256, 1)?;
+        let is_initialized = initialized(257, &tick_bitmap)?;
+        assert_eq!(is_initialized, true);
+        let is_initialized = initialized(1, &tick_bitmap)?;
+        assert_eq!(is_initialized, false);
         Ok(())
     }
 
-    #[test]
-    pub fn test_initialized_3() -> eyre::Result<()> {
-        //is not changed by another flip to a different tick on another word
-        let mut tick_bitmap: HashMap<i16, U256> = HashMap::new();
-        flip_tick(&mut tick_bitmap, 1 + 256, 1)?;
-        let initialized_0 = initialized(257, &tick_bitmap)?;
-        assert_eq!(initialized_0, true);
-        let initialized_1 = initialized(1, &tick_bitmap)?;
-        assert_eq!(initialized_1, false);
-        Ok(())
-    }
     #[test]
     pub fn test_flip_tick() -> eyre::Result<()> {
         //flips only the specified tick
         let mut tick_bitmap = HashMap::new();
         flip_tick(&mut tick_bitmap, -230, 1)?;
-        let initialized_0 = initialized(-230, &tick_bitmap)?;
-        assert_eq!(initialized_0, true);
-        let initialized_1 = initialized(-231, &tick_bitmap)?;
-        assert_eq!(initialized_1, false);
-        let initialized_2 = initialized(-229, &tick_bitmap)?;
-        assert_eq!(initialized_2, false);
-        let initialized_3 = initialized(-230 + 256, &tick_bitmap)?;
-        assert_eq!(initialized_3, false);
-        let initialized_4 = initialized(-230 - 256, &tick_bitmap)?;
-        assert_eq!(initialized_4, false);
+        let is_initialized = initialized(-230, &tick_bitmap)?;
+        assert_eq!(is_initialized, true);
+        let is_initialized = initialized(-231, &tick_bitmap)?;
+        assert_eq!(is_initialized, false);
+        let is_initialized = initialized(-229, &tick_bitmap)?;
+        assert_eq!(is_initialized, false);
+        let is_initialized = initialized(-230 + 256, &tick_bitmap)?;
+        assert_eq!(is_initialized, false);
+        let is_initialized = initialized(-230 - 256, &tick_bitmap)?;
+        assert_eq!(is_initialized, false);
         flip_tick(&mut tick_bitmap, -230, 1)?;
-        let initialized_5 = initialized(-230, &tick_bitmap)?;
-        assert_eq!(initialized_5, false);
-        let initialized_6 = initialized(-231, &tick_bitmap)?;
-        assert_eq!(initialized_6, false);
-        let initialized_7 = initialized(-229, &tick_bitmap)?;
-        assert_eq!(initialized_7, false);
-        let initialized_8 = initialized(-230 + 256, &tick_bitmap)?;
-        assert_eq!(initialized_8, false);
-        let initialized_9 = initialized(-230 - 256, &tick_bitmap)?;
-        assert_eq!(initialized_9, false);
+        let is_initialized = initialized(-230, &tick_bitmap)?;
+        assert_eq!(is_initialized, false);
+        let is_initialized = initialized(-231, &tick_bitmap)?;
+        assert_eq!(is_initialized, false);
+        let is_initialized = initialized(-229, &tick_bitmap)?;
+        assert_eq!(is_initialized, false);
+        let is_initialized = initialized(-230 + 256, &tick_bitmap)?;
+        assert_eq!(is_initialized, false);
+        let is_initialized = initialized(-230 - 256, &tick_bitmap)?;
+        assert_eq!(is_initialized, false);
         //reverts only itself
         tick_bitmap.clear();
         flip_tick(&mut tick_bitmap, -230, 1)?;
@@ -427,10 +416,10 @@ mod test {
         flip_tick(&mut tick_bitmap, -259, 1)?;
         flip_tick(&mut tick_bitmap, -229, 1)?;
         flip_tick(&mut tick_bitmap, -259, 1)?;
-        let initialized_0 = initialized(-259, &tick_bitmap)?;
-        let initialized_1 = initialized(-229, &tick_bitmap)?;
-        assert_eq!(initialized_0, true);
-        assert_eq!(initialized_1, false);
+        let is_initialized = initialized(-259, &tick_bitmap)?;
+        assert_eq!(is_initialized, true);
+        let is_initialized = initialized(-229, &tick_bitmap)?;
+        assert_eq!(is_initialized, false);
 
         Ok(())
     }
