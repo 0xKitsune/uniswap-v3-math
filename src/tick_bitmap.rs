@@ -419,17 +419,7 @@ mod test {
         let initialized_9 = initialized(-230 - 256, &tick_bitmap)?;
         assert_eq!(initialized_9, false);
         //reverts only itself
-        //     await tickBitmap.flipTick(-230)
-        //   await tickBitmap.flipTick(-259)
-        //   await tickBitmap.flipTick(-229)
-        //   await tickBitmap.flipTick(500)
-        //   await tickBitmap.flipTick(-259)
-        //   await tickBitmap.flipTick(-229)
-        //   await tickBitmap.flipTick(-259)
-
-        //   expect(await tickBitmap.isInitialized(-259)).to.eq(true)
-        //   expect(await tickBitmap.isInitialized(-229)).to.eq(false)
-        //     tick_bitmap.clear();
+        tick_bitmap.clear();
         flip_tick(&mut tick_bitmap, -230, 1)?;
         flip_tick(&mut tick_bitmap, -259, 1)?;
         flip_tick(&mut tick_bitmap, -229, 1)?;
