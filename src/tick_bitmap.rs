@@ -214,7 +214,7 @@ mod test {
     }
 
     #[test]
-    pub fn test_next_initialized_tick_within_one_word() -> eyre::Result<()> {
+    pub fn test_next_initialized_tick_within_one_word_lte_false() -> eyre::Result<()> {
         let mut tick_bitmap = init_test_ticks()?;
         //returns tick to right if at initialized tick
         let (next, initialized) =
@@ -282,6 +282,71 @@ mod test {
     }
 
     #[test]
+    pub fn test_next_initialized_tick_within_one_word_lte_true() -> eyre::Result<()> {
+        let mut tick_bitmap = init_test_ticks()?;
+        //returns same tick if initialized
+        let (next, initialized) = next_initialized_tick_within_one_word(&tick_bitmap, 78, 1, true)?;
+        assert_eq!(next, 78);
+        assert_eq!(initialized, true);
+        tick_bitmap = init_test_ticks()?;
+        //returns tick directly to the left of input tick if not initialized
+        let (next, initialized) = next_initialized_tick_within_one_word(&tick_bitmap, 79, 1, true)?;
+
+        assert_eq!(next, 78);
+        assert_eq!(initialized, true);
+        tick_bitmap = init_test_ticks()?;
+        //will not exceed the word boundary
+        let (next, initialized) =
+            next_initialized_tick_within_one_word(&tick_bitmap, 258, 1, true)?;
+
+        assert_eq!(next, 256);
+        assert_eq!(initialized, false);
+        tick_bitmap = init_test_ticks()?;
+        //at the word boundary
+        let (next, initialized) =
+            next_initialized_tick_within_one_word(&tick_bitmap, 256, 1, true)?;
+
+        assert_eq!(next, 256);
+        assert_eq!(initialized, false);
+        tick_bitmap = init_test_ticks()?;
+        //word boundary less 1 (next initialized tick in next word)',
+        let (next, initialized) = next_initialized_tick_within_one_word(&tick_bitmap, 72, 1, true)?;
+
+        assert_eq!(next, 70);
+        assert_eq!(initialized, true);
+        tick_bitmap = init_test_ticks()?;
+        //word boundary
+        let (next, initialized) =
+            next_initialized_tick_within_one_word(&tick_bitmap, -257, 1, true)?;
+
+        assert_eq!(next, -512);
+        assert_eq!(initialized, false);
+        tick_bitmap = init_test_ticks()?;
+        //entire empty word
+        let (next, initialized) =
+            next_initialized_tick_within_one_word(&tick_bitmap, 1023, 1, true)?;
+
+        assert_eq!(next, 768);
+        assert_eq!(initialized, false);
+        tick_bitmap = init_test_ticks()?;
+        //halfway through empty word
+        let (next, initialized) =
+            next_initialized_tick_within_one_word(&tick_bitmap, 900, 1, true)?;
+
+        assert_eq!(next, 768);
+        assert_eq!(initialized, false);
+        tick_bitmap = init_test_ticks()?;
+        //boundary is initialized
+        flip_tick(&mut tick_bitmap, 329, 1)?;
+        let (next, initialized) =
+            next_initialized_tick_within_one_word(&tick_bitmap, 456, 1, true)?;
+
+        assert_eq!(next, 329);
+        assert_eq!(initialized, true);
+        Ok(())
+    }
+
+    #[test]
     pub fn test_initialized_0() -> eyre::Result<()> {
         //is false at first
         let mut tick_bitmap: HashMap<i16, U256> = HashMap::new();
@@ -329,6 +394,7 @@ mod test {
     }
     #[test]
     pub fn test_flip_tick() -> eyre::Result<()> {
+        //flips only the specified tick
         let mut tick_bitmap = HashMap::new();
         flip_tick(&mut tick_bitmap, -230, 1)?;
         let initialized_0 = initialized(-230, &tick_bitmap)?;
@@ -352,6 +418,29 @@ mod test {
         assert_eq!(initialized_8, false);
         let initialized_9 = initialized(-230 - 256, &tick_bitmap)?;
         assert_eq!(initialized_9, false);
+        //reverts only itself
+        //     await tickBitmap.flipTick(-230)
+        //   await tickBitmap.flipTick(-259)
+        //   await tickBitmap.flipTick(-229)
+        //   await tickBitmap.flipTick(500)
+        //   await tickBitmap.flipTick(-259)
+        //   await tickBitmap.flipTick(-229)
+        //   await tickBitmap.flipTick(-259)
+
+        //   expect(await tickBitmap.isInitialized(-259)).to.eq(true)
+        //   expect(await tickBitmap.isInitialized(-229)).to.eq(false)
+        //     tick_bitmap.clear();
+        flip_tick(&mut tick_bitmap, -230, 1)?;
+        flip_tick(&mut tick_bitmap, -259, 1)?;
+        flip_tick(&mut tick_bitmap, -229, 1)?;
+        flip_tick(&mut tick_bitmap, 500, 1)?;
+        flip_tick(&mut tick_bitmap, -259, 1)?;
+        flip_tick(&mut tick_bitmap, -229, 1)?;
+        flip_tick(&mut tick_bitmap, -259, 1)?;
+        let initialized_0 = initialized(-259, &tick_bitmap)?;
+        let initialized_1 = initialized(-229, &tick_bitmap)?;
+        assert_eq!(initialized_0, true);
+        assert_eq!(initialized_1, false);
 
         Ok(())
     }
