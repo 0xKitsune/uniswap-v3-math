@@ -2470,6 +2470,7 @@ name = "uniswap_v3_math"
 version = "0.4.0"
 dependencies = [
  "ethers",
+ "eyre",
  "ruint",
  "thiserror",
 ]
