@@ -5,6 +5,7 @@ use ethers::{
 };
 use std::{collections::HashMap, sync::Arc};
 
+//Flips the initialized state for a given tick from false to true, or vice versa
 pub fn flip_tick(
     tick_bitmap: &mut HashMap<i16, U256>,
     tick: i32,
@@ -21,9 +22,8 @@ pub fn flip_tick(
     Ok(())
 }
 
-//Returns next and initialized
-//current_word is the current word in the TickBitmap of the pool based on `tick`. TickBitmap[word_pos] = current_word
-//Where word_pos is the 256 bit offset of the ticks word_pos.. word_pos := tick >> 8
+//Returns the next initialized tick contained in the same word (or adjacent word) as the tick that is either
+//to the left (less than or equal to) or right (greater than) of the given tick
 pub fn next_initialized_tick_within_one_word(
     tick_bitmap: &HashMap<i16, U256>,
     tick: i32,
@@ -180,7 +180,7 @@ pub async fn next_initialized_tick_within_one_word_from_provider<M: Middleware>(
     }
 }
 
-// returns (int16 wordPos, uint8 bitPos)
+//Computes the position in the mapping where the initialized bit for a tick lives
 pub fn position(tick: i32) -> (i16, u8) {
     ((tick >> 8) as i16, (tick % 256) as u8)
 }
