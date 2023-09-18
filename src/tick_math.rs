@@ -97,6 +97,11 @@ pub fn get_sqrt_ratio_at_tick(tick: i32) -> Result<U256, UniswapV3MathError> {
         })
 }
 
+const MAGIC_SQRT_10001: I256 = I256::from_raw(U256([11745905768312294533, 13863, 0, 0]));
+const MAGIC_TICK_LOW: I256 = I256::from_raw(U256([6552757943157144234, 184476617836266586, 0, 0]));
+const MAGIC_TICK_HIGH: I256 =
+    I256::from_raw(U256([4998474450511881007, 15793544031827761793, 0, 0]));
+
 pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3MathError> {
     if !(sqrt_price_x_96 >= MIN_SQRT_RATIO && sqrt_price_x_96 < MAX_SQRT_RATIO) {
         return Err(UniswapV3MathError::R);
@@ -190,17 +195,11 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     let f = r.shr(128);
     log_2 = log_2.bitor(I256::from_raw(f.shl(50)));
 
-    let log_sqrt10001 = log_2.wrapping_mul(I256::from_dec_str("255738958999603826347141").unwrap());
+    let log_sqrt10001 = log_2.wrapping_mul(MAGIC_SQRT_10001);
 
-    let tick_low = ((log_sqrt10001
-        - I256::from_dec_str("3402992956809132418596140100660247210").unwrap())
-        >> 128_u8)
-        .low_i32();
+    let tick_low = ((log_sqrt10001 - MAGIC_TICK_LOW) >> 128_u8).low_i32();
 
-    let tick_high = ((log_sqrt10001
-        + I256::from_dec_str("291339464771989622907027621153398088495").unwrap())
-        >> 128_u8)
-        .low_i32();
+    let tick_high = ((log_sqrt10001 + MAGIC_TICK_HIGH) >> 128_u8).low_i32();
 
     let tick = if tick_low == tick_high {
         tick_low
