@@ -11,8 +11,4 @@ pub mod tick_math;
 pub mod unsafe_math;
 pub mod utils;
 
-use error::UniswapV3MathError;
 
-pub trait BitmapReader {
-    fn word_at_pos(&self, pos: i16) -> Result<U256, UniswapV3MathError>;
-}

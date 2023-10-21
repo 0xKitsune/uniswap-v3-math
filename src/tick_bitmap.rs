@@ -1,9 +1,13 @@
-use crate::{abi, bit_math, error::UniswapV3MathError, BitmapReader};
+use crate::{abi, bit_math, error::UniswapV3MathError};
 use ethers::{
     providers::Middleware,
     types::{BlockNumber, H160, U256},
 };
 use std::{collections::HashMap, sync::Arc};
+
+pub trait BitmapReader {
+    fn word_at_pos(&self, pos: i16) -> Result<U256, UniswapV3MathError>;
+}
 
 //Flips the initialized state for a given tick from false to true, or vice versa
 pub fn flip_tick(
