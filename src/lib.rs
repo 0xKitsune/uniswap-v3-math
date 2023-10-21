@@ -10,3 +10,10 @@ pub mod tick_bitmap;
 pub mod tick_math;
 pub mod unsafe_math;
 pub mod utils;
+
+use error::UniswapV3MathError;
+
+pub trait TickReader {
+    fn word_at_pos(&self, pos: i16) -> Result<U256, UniswapV3MathError>;
+    fn liquidity_net_at_tick(&self, tick: i32) -> Result<i128, UniswapV3MathError>;
+}
