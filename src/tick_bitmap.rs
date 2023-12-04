@@ -6,7 +6,7 @@ use ethers::{
 use std::{collections::HashMap, sync::Arc};
 
 pub trait BitmapReader {
-    fn word_at_pos(&self, pos: i16) -> Result<U256, UniswapV3MathError>;
+    fn word_at_pos(&self, pool_address: H160, pos: i16) -> Result<U256, UniswapV3MathError>;
 }
 
 //Flips the initialized state for a given tick from false to true, or vice versa
@@ -89,10 +89,11 @@ pub fn next_initialized_tick_within_one_word(
 // current_word is the current word in the TickBitmap of the pool based on `tick`. TickBitmap[word_pos] = current_word
 // Where word_pos is the 256 bit offset of the ticks word_pos.. word_pos := tick >> 8
 pub fn next_initialized_tick_within_one_word_from_reader<Bitmap: BitmapReader>(
-    tick_bitmap: Bitmap,
     tick: i32,
     tick_spacing: i32,
     lte: bool,
+    pool_address: H160,
+    tick_bitmap: Bitmap,
 ) -> Result<(i32, bool), UniswapV3MathError> {
     let compressed = if tick < 0 && tick % tick_spacing != 0 {
         (tick / tick_spacing) - 1
@@ -105,7 +106,7 @@ pub fn next_initialized_tick_within_one_word_from_reader<Bitmap: BitmapReader>(
 
         let mask = (U256::one() << bit_pos) - 1 + (U256::one() << bit_pos);
 
-        let masked = tick_bitmap.word_at_pos(word_pos)? & mask;
+        let masked = tick_bitmap.word_at_pos(pool_address, word_pos)? & mask;
 
         let initialized = !masked.is_zero();
 
@@ -125,7 +126,7 @@ pub fn next_initialized_tick_within_one_word_from_reader<Bitmap: BitmapReader>(
 
         let mask = !((U256::one() << bit_pos) - U256::one());
 
-        let masked = tick_bitmap.word_at_pos(word_pos)? & mask;
+        let masked = tick_bitmap.word_at_pos(pool_address, word_pos)? & mask;
 
         let initialized = !masked.is_zero();
 
