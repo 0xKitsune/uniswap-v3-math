@@ -38,4 +38,6 @@ pub enum UniswapV3MathError {
     TickSpacingError,
     #[error("Middleware error when getting next_initialized_tick_within_one_word")]
     MiddlewareError(String),
+    #[error("BitmapReader error when getting next_initialized_tick_within_one_word_from_reader")]
+    BitmapReaderError(String),
 }
