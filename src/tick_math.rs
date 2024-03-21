@@ -1,18 +1,25 @@
 use std::ops::{BitOr, Neg, Shl, Shr};
 
-use ethers::types::{I256, U256};
+use alloy_primitives::{I256, U256};
 
 use crate::error::UniswapV3MathError;
 
 pub const MIN_TICK: i32 = -887272;
 pub const MAX_TICK: i32 = -MIN_TICK;
 
-pub const MIN_SQRT_RATIO: U256 = U256([4295128739, 0, 0, 0]);
-pub const MAX_SQRT_RATIO: U256 = U256([6743328256752651558, 17280870778742802505, 4294805859, 0]);
+pub const MIN_SQRT_RATIO: U256 = U256::from([4295128739, 0, 0, 0]);
+pub const MAX_SQRT_RATIO: U256 =
+    U256::from([6743328256752651558, 17280870778742802505, 4294805859, 0]);
 
-pub const SQRT_10001: I256 = I256::from_raw(U256([11745905768312294533, 13863, 0, 0]));
-pub const TICK_LOW: I256 = I256::from_raw(U256([6552757943157144234, 184476617836266586, 0, 0]));
-pub const TICK_HIGH: I256 = I256::from_raw(U256([4998474450511881007, 15793544031827761793, 0, 0]));
+pub const SQRT_10001: I256 = I256::from_raw(U256::from([11745905768312294533, 13863, 0, 0]));
+pub const TICK_LOW: I256 =
+    I256::from_raw(U256::from([6552757943157144234, 184476617836266586, 0, 0]));
+pub const TICK_HIGH: I256 = I256::from_raw(U256::from([
+    4998474450511881007,
+    15793544031827761793,
+    0,
+    0,
+]));
 
 pub fn get_sqrt_ratio_at_tick(tick: i32) -> Result<U256, UniswapV3MathError> {
     let abs_tick = if tick < 0 {
@@ -214,7 +221,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
 #[cfg(test)]
 mod test {
     use super::*;
-    use ethers::types::U256;
+    use alloy::primitives::U256;
     use std::ops::Sub;
 
     #[test]

@@ -1,4 +1,4 @@
-use ethers::types::U256;
+use alloy::primitives::U256;
 
 pub struct Tick {
     pub liquidity_gross: u128,

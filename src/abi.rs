@@ -1,8 +1,8 @@
-use ethers::contract::abigen;
+sol! {
+    #[sol(rpc)]
+    contract UniswapV3Pool {
 
-abigen!(
-    IUniswapV3Pool,
-    r#"[
-        function tickBitmap(int16) external returns (uint256)
-    ]"#;
-);
+        #[derive(Debug)]
+        function tickBitmap(int16) external returns (uint256);
+    }
+}

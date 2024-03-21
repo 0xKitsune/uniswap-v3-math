@@ -1,6 +1,6 @@
 use std::ops::ShrAssign;
 
-use ethers::types::U256;
+use alloy_primitives::U256;
 
 use crate::error::UniswapV3MathError;
 
@@ -113,7 +113,7 @@ pub fn least_significant_bit(mut x: U256) -> Result<u8, UniswapV3MathError> {
 #[cfg(test)]
 mod test {
 
-    use ethers::types::U256;
+    use alloy_primitives::U256;
 
     use crate::bit_math::least_significant_bit;
 

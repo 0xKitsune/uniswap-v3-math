@@ -1,35 +1,33 @@
-use ethers::types::U256;
 use std::ops::{Add, BitAnd, BitOrAssign, BitXor, Div, Mul, MulAssign};
 
-use crate::{
-    error::UniswapV3MathError,
-    utils::{u256_to_ruint, RUINT_MAX_U256, RUINT_ONE, RUINT_THREE, RUINT_TWO, RUINT_ZERO},
-};
+use crate::error::UniswapV3MathError;
+// use alloy_primitives::utils::ParseUnits::U256;
+
+use alloy_primitives::{Uint, U256};
+
+pub const ONE: Uint<256, 4> = Uint::<256, 4>::from_limbs([1, 0, 0, 0]);
+pub const TWO: Uint<256, 4> = Uint::<256, 4>::from_limbs([2, 0, 0, 0]);
+pub const THREE: Uint<256, 4> = Uint::<256, 4>::from_limbs([3, 0, 0, 0]);
 
 // returns (uint256 result)
-pub fn mul_div(a: U256, b: U256, denominator: U256) -> Result<U256, UniswapV3MathError> {
-    //NOTE: Converting to ruint to allow for unchecked div which does not exist for U256
-    let a = u256_to_ruint(a);
-    let b = u256_to_ruint(b);
-    let mut denominator = u256_to_ruint(denominator);
-
+pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV3MathError> {
     // 512-bit multiply [prod1 prod0] = a * b
     // Compute the product mod 2**256 and mod 2**256 - 1
     // then use the Chinese Remainder Theorem to reconstruct
     // the 512 bit result. The result is stored in two 256
     // variables such that product = prod1 * 2**256 + prod0
-    let mm = a.mul_mod(b, RUINT_MAX_U256);
+    let mm = a.mul_mod(b, U256::MAX);
 
     let mut prod_0 = a.overflowing_mul(b).0; // Least significant 256 bits of the product
     let mut prod_1 = mm
         .overflowing_sub(prod_0)
         .0
-        .overflowing_sub(ruint::Uint::<256, 4>::from((mm < prod_0) as u8))
+        .overflowing_sub(alloy_primitives::Uint::<256, 4>::from((mm < prod_0) as u8))
         .0;
 
     // Handle non-overflow cases, 256 by 256 division
-    if prod_1 == RUINT_ZERO {
-        if denominator == RUINT_ZERO {
+    if prod_1 == U256::ZERO {
+        if denominator == U256::ZERO {
             return Err(UniswapV3MathError::DenominatorIsZero);
         }
         return Ok(U256::from_little_endian(
@@ -54,14 +52,16 @@ pub fn mul_div(a: U256, b: U256, denominator: U256) -> Result<U256, UniswapV3Mat
 
     // Subtract 256 bit number from 512 bit number
     prod_1 = prod_1
-        .overflowing_sub(ruint::Uint::<256, 4>::from((remainder > prod_0) as u8))
+        .overflowing_sub(alloy_primitives::Uint::<256, 4>::from(
+            (remainder > prod_0) as u8,
+        ))
         .0;
     prod_0 = prod_0.overflowing_sub(remainder).0;
 
     // Factor powers of two out of denominator
     // Compute largest power of two divisor of denominator.
     // Always >= 1.
-    let mut twos = RUINT_ZERO
+    let mut twos = U256::ZERO
         .overflowing_sub(denominator)
         .0
         .bitand(denominator);
@@ -76,7 +76,8 @@ pub fn mul_div(a: U256, b: U256, denominator: U256) -> Result<U256, UniswapV3Mat
     // Shift in bits from prod1 into prod0. For this we need
     // to flip `twos` such that it is 2**256 / twos.
     // If twos is zero, then it becomes one
-    twos = (RUINT_ZERO.overflowing_sub(twos).0.wrapping_div(twos)).add(RUINT_ONE);
+    twos = (U256::ZERO.overflowing_sub(twos).0.wrapping_div(twos))
+        .add(alloy_primitives::utils::ParseUnits::U256);
 
     prod_0.bitor_assign(prod_1 * twos);
 
@@ -86,18 +87,18 @@ pub fn mul_div(a: U256, b: U256, denominator: U256) -> Result<U256, UniswapV3Mat
     // Compute the inverse by starting with a seed that is correct
     // correct for four bits. That is, denominator * inv = 1 mod 2**4
 
-    let mut inv = RUINT_THREE.mul(denominator).bitxor(RUINT_TWO);
+    let mut inv = THREE.mul(denominator).bitxor(TWO);
 
     // Now use Newton-Raphson iteration to improve the precision.
     // Thanks to Hensel's lifting lemma, this also works in modular
     // arithmetic, doubling the correct bits in each step.
 
-    inv.mul_assign(RUINT_TWO - denominator * inv); // inverse mod 2**8
-    inv.mul_assign(RUINT_TWO - denominator * inv); // inverse mod 2**16
-    inv.mul_assign(RUINT_TWO - denominator * inv); // inverse mod 2**32
-    inv.mul_assign(RUINT_TWO - denominator * inv); // inverse mod 2**64
-    inv.mul_assign(RUINT_TWO - denominator * inv); // inverse mod 2**128
-    inv.mul_assign(RUINT_TWO - denominator * inv); // inverse mod 2**256
+    inv.mul_assign(TWO - denominator * inv); // inverse mod 2**8
+    inv.mul_assign(TWO - denominator * inv); // inverse mod 2**16
+    inv.mul_assign(TWO - denominator * inv); // inverse mod 2**32
+    inv.mul_assign(TWO - denominator * inv); // inverse mod 2**64
+    inv.mul_assign(TWO - denominator * inv); // inverse mod 2**128
+    inv.mul_assign(TWO - denominator * inv); // inverse mod 2**256
 
     // Because the division is now exact we can divide by multiplying
     // with the modular inverse of denominator. This will give us the
@@ -116,11 +117,7 @@ pub fn mul_div_rounding_up(
 ) -> Result<U256, UniswapV3MathError> {
     let result = mul_div(a, b, denominator)?;
 
-    let a = u256_to_ruint(a);
-    let b = u256_to_ruint(b);
-    let denominator = u256_to_ruint(denominator);
-
-    if a.mul_mod(b, denominator) > RUINT_ZERO {
+    if a.mul_mod(b, denominator) > U256::ZERO {
         if result == U256::MAX {
             Err(UniswapV3MathError::ResultIsU256MAX)
         } else {
@@ -134,9 +131,8 @@ pub fn mul_div_rounding_up(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ethers::types::U256;
 
-    const Q128: U256 = U256([0, 0, 1, 0]);
+    const Q128: U256 = U256::from([0, 0, 1, 0]);
 
     #[test]
     fn test_mul_div() {
@@ -165,11 +161,11 @@ mod test {
 
     use std::ops::{Div, Mul, Sub};
 
-    use ethers::types::U256;
+    use alloy_primitives::U256;
 
     use super::mul_div;
 
-    const Q128: U256 = U256([0, 0, 1, 0]);
+    const Q128: U256 = U256::from([0, 0, 1, 0]);
 
     #[test]
     fn test_mul_div() {

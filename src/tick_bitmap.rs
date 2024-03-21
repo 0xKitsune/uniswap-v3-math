@@ -1,8 +1,8 @@
 use crate::{abi, bit_math, error::UniswapV3MathError};
-use ethers::{
-    providers::Middleware,
-    types::{BlockNumber, H160, U256},
-};
+
+use alloy::primitives::{Address, BlockNumber, U256};
+use alloy_provider::{Network, Provider};
+
 use std::{collections::HashMap, sync::Arc};
 
 //Flips the initialized state for a given tick from false to true, or vice versa
@@ -83,13 +83,13 @@ pub fn next_initialized_tick_within_one_word(
 //Returns next and initialized. This function calls the node to get the word at the word_pos.
 //current_word is the current word in the TickBitmap of the pool based on `tick`. TickBitmap[word_pos] = current_word
 //Where word_pos is the 256 bit offset of the ticks word_pos.. word_pos := tick >> 8
-pub async fn next_initialized_tick_within_one_word_from_provider<M: Middleware>(
+pub async fn next_initialized_tick_within_one_word_from_provider<P: Provider<N>, N: Network>(
     tick: i32,
     tick_spacing: i32,
     lte: bool,
-    pool_address: H160,
+    pool_address: Address,
     block_number: Option<BlockNumber>,
-    middleware: Arc<M>,
+    provider: Arc<P>,
 ) -> Result<(i32, bool), UniswapV3MathError> {
     let compressed = if tick < 0 && tick % tick_spacing != 0 {
         (tick / tick_spacing) - 1
@@ -189,7 +189,7 @@ pub fn position(tick: i32) -> (i16, u8) {
 mod test {
     use std::{collections::HashMap, vec};
 
-    use ethers::types::U256;
+    use alloy_primitives::U256;
 
     use super::{flip_tick, next_initialized_tick_within_one_word};
 

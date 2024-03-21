@@ -1,4 +1,4 @@
-use ethers::types::{I256, U256};
+use alloy::primitives::{I256, U256};
 
 use crate::{
     error::UniswapV3MathError,
@@ -150,13 +150,13 @@ pub fn compute_swap_step(
 }
 
 mod test {
+    use alloy::primitives::{I256, U256};
+
     #[allow(unused)]
     use crate::sqrt_price_math::{get_next_sqrt_price_from_input, get_next_sqrt_price_from_output};
     #[allow(unused)]
     use crate::swap_math::compute_swap_step;
     #[allow(unused)]
-    use ethers::types::{I256, U256};
-
     #[test]
     fn test_compute_swap_step() {
         //------------------------------------------------------------
