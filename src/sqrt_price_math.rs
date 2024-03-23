@@ -1,5 +1,4 @@
-use alloy_primitives::I256;
-use alloy_primitives::U256;
+use alloy::primitives::{I256, U256};
 
 use crate::{
     error::UniswapV3MathError,
@@ -228,7 +227,7 @@ pub fn get_amount_1_delta(
 mod test {
     use std::ops::{Add, Sub};
 
-    use alloy_primitives::U256;
+    use alloy::primitives::U256;
 
     use crate::sqrt_price_math::{_get_amount_1_delta, get_next_sqrt_price_from_output, MAX_U160};
 

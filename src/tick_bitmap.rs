@@ -1,9 +1,16 @@
-use crate::{abi, bit_math, error::UniswapV3MathError};
-
+use crate::{bit_math, error::UniswapV3MathError};
 use alloy::primitives::{Address, BlockNumber, U256};
-use alloy_provider::{Network, Provider};
-
+use alloy::providers::{Network, Provider};
+use alloy::sol;
 use std::{collections::HashMap, sync::Arc};
+
+sol! {
+    #![sol(alloy_sol_types = crate::sol_types, alloy_contract = crate::contract)]
+    contract IUniswapV3Pool {
+        #[derive(Debug)]
+        function tick_bitmap(int16) external returns (int16);
+    }
+}
 
 //Flips the initialized state for a given tick from false to true, or vice versa
 pub fn flip_tick(

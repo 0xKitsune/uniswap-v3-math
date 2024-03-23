@@ -3,7 +3,7 @@ use std::ops::{Add, BitAnd, BitOrAssign, BitXor, Div, Mul, MulAssign};
 use crate::error::UniswapV3MathError;
 // use alloy_primitives::utils::ParseUnits::U256;
 
-use alloy_primitives::{Uint, U256};
+use alloy::primitives::{Uint, U256};
 
 pub const ONE: Uint<256, 4> = Uint::<256, 4>::from_limbs([1, 0, 0, 0]);
 pub const TWO: Uint<256, 4> = Uint::<256, 4>::from_limbs([2, 0, 0, 0]);
@@ -22,7 +22,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
     let mut prod_1 = mm
         .overflowing_sub(prod_0)
         .0
-        .overflowing_sub(alloy_primitives::Uint::<256, 4>::from((mm < prod_0) as u8))
+        .overflowing_sub(alloy::primitives::Uint::<256, 4>::from((mm < prod_0) as u8))
         .0;
 
     // Handle non-overflow cases, 256 by 256 division
@@ -52,7 +52,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
 
     // Subtract 256 bit number from 512 bit number
     prod_1 = prod_1
-        .overflowing_sub(alloy_primitives::Uint::<256, 4>::from(
+        .overflowing_sub(alloy::primitives::Uint::<256, 4>::from(
             (remainder > prod_0) as u8,
         ))
         .0;
@@ -77,7 +77,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
     // to flip `twos` such that it is 2**256 / twos.
     // If twos is zero, then it becomes one
     twos = (U256::ZERO.overflowing_sub(twos).0.wrapping_div(twos))
-        .add(alloy_primitives::utils::ParseUnits::U256);
+        .add(alloy::primitives::utils::ParseUnits::U256);
 
     prod_0.bitor_assign(prod_1 * twos);
 
@@ -161,7 +161,7 @@ mod test {
 
     use std::ops::{Div, Mul, Sub};
 
-    use alloy_primitives::U256;
+    use alloy::primitives::U256;
 
     use super::mul_div;
 

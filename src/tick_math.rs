@@ -1,6 +1,6 @@
 use std::ops::{BitOr, Neg, Shl, Shr};
 
-use alloy_primitives::{I256, U256};
+use alloy::primitives::{I256, U256};
 
 use crate::error::UniswapV3MathError;
 

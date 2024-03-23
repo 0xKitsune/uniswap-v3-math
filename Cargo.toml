@@ -12,11 +12,40 @@ exclude = ["target/*", ".github/*", ".gitignore", "Uniswap/*"]
 
 [dependencies]
 # ethers = { version = "2.0.0", default-features = false, features = ["abigen"] }
-# alloy-primitives = { git = "https://github.com/alloy-rs/alloy.git", rev = "f9c90dececc991486eb483f3f9398bb2714fb8a0" }
-alloy-provider = { git = "https://github.com/alloy-rs/alloy.git", rev = "f9c90dececc991486eb483f3f9398bb2714fb8a0" }
-alloy-contract = { git = "https://github.com/alloy-rs/alloy.git", rev = "f9c90dececc991486eb483f3f9398bb2714fb8a0" } 
-alloy = { git = "https://github.com/alloy-rs/alloy.git", rev = "f9c90dececc991486eb483f3f9398bb2714fb8a0" } 
-
+alloy = { git = "https://github.com/alloy-rs/alloy", rev = "fd8f065", features = [
+    # "dyn-abi",
+    # "json-abi",
+    # "json",
+    "sol-types",
+    # "rlp",
+    # "serde",
+    "contract",
+    # "consensus",
+    # "eips",
+    "network",
+    # "genesis",
+    "node-bindings",
+    "providers",
+    "rpc",
+    # "json-rpc",
+    "rpc-client",
+    # "rpc-types",
+    "rpc-types-eth",
+    # "rpc-types-engine",
+    # "rpc-types-trace",
+    "signers",
+    # "signer-aws",
+    # "signer-gcp",
+    "signer-ledger",
+    "signer-trezor",
+    "signer-wallet",
+    "signer-mnemonic",
+    "signer-yubihsm",
+    # "transports",
+    "transport-http",
+    # "transport-ipc",
+    # "transport-ws",
+    # "pubsub",
+] }
 eyre = "0.6.8"
-# ruint = "1.7.0"
 thiserror = "1.0.38"
