@@ -7,7 +7,7 @@ use std::{collections::HashMap, sync::Arc};
 
 sol! {
     #[sol(rpc)]
-    contract UniswapV3Pool {
+    interface IUniswapV3Pool {
         function tick_bitmap(int16) external returns (int16);
     }
 }
@@ -109,7 +109,7 @@ pub async fn next_initialized_tick_within_one_word_from_provider<P: Provider<N>,
         let mask = (U256_ONE << bit_pos) - U256_ONE + (U256_ONE << bit_pos);
 
         let word: U256 = if block_number.is_some() {
-            match UniswapV3Pool::new(pool_address, provider)
+            match IUniswapV3Pool::new(pool_address, provider)
                 .tick_bitmap(word_pos)
                 .block(block_number.unwrap())
                 .call()
