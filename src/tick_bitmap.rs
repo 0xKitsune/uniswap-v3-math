@@ -5,9 +5,7 @@ use alloy::sol;
 use std::{collections::HashMap, sync::Arc};
 
 sol! {
-    #![sol(alloy_sol_types = crate::sol_types, alloy_contract = crate::contract)]
-    contract IUniswapV3Pool {
-        #[derive(Debug)]
+    interface IUniswapV3Pool {
         function tick_bitmap(int16) external returns (int16);
     }
 }
@@ -23,8 +21,8 @@ pub fn flip_tick(
     }
 
     let (word_pos, bit_pos) = position(tick / tick_spacing);
-    let mask = U256::one() << bit_pos;
-    let word = *tick_bitmap.get(&word_pos).unwrap_or(&U256::zero());
+    let mask = U256_ONE << bit_pos;
+    let word = *tick_bitmap.get(&word_pos).unwrap_or(&U256::ZERO);
     tick_bitmap.insert(word_pos, word ^ mask);
     Ok(())
 }
@@ -46,9 +44,9 @@ pub fn next_initialized_tick_within_one_word(
     if lte {
         let (word_pos, bit_pos) = position(compressed);
 
-        let mask = (U256::one() << bit_pos) - 1 + (U256::one() << bit_pos);
+        let mask = (U256_ONE << bit_pos) - 1 + (U256_ONE << bit_pos);
 
-        let masked = *tick_bitmap.get(&word_pos).unwrap_or(&U256::zero()) & mask;
+        let masked = *tick_bitmap.get(&word_pos).unwrap_or(&U256::ZERO) & mask;
 
         let initialized = !masked.is_zero();
 
@@ -66,9 +64,9 @@ pub fn next_initialized_tick_within_one_word(
     } else {
         let (word_pos, bit_pos) = position(compressed + 1);
 
-        let mask = !((U256::one() << bit_pos) - U256::one());
+        let mask = !((U256_ONE << bit_pos) - U256_ONE);
 
-        let masked = *tick_bitmap.get(&word_pos).unwrap_or(&U256::zero()) & mask;
+        let masked = *tick_bitmap.get(&word_pos).unwrap_or(&U256::ZERO) & mask;
 
         let initialized = !masked.is_zero();
 
@@ -106,7 +104,7 @@ pub async fn next_initialized_tick_within_one_word_from_provider<P: Provider<N>,
 
     if lte {
         let (word_pos, bit_pos) = position(compressed);
-        let mask = (U256::one() << bit_pos) - 1 + (U256::one() << bit_pos);
+        let mask = (U256_ONE << bit_pos) - 1 + (U256_ONE << bit_pos);
 
         let word: U256 = if block_number.is_some() {
             match abi::IUniswapV3Pool::new(pool_address, middleware)
@@ -146,7 +144,7 @@ pub async fn next_initialized_tick_within_one_word_from_provider<P: Provider<N>,
         Ok((next, initialized))
     } else {
         let (word_pos, bit_pos) = position(compressed + 1);
-        let mask = !((U256::one() << bit_pos) - U256::one());
+        let mask = !((U256_ONE << bit_pos) - U256_ONE);
 
         let word: U256 = if block_number.is_some() {
             match abi::IUniswapV3Pool::new(pool_address, middleware)

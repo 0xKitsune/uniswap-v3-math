@@ -1,6 +1,6 @@
 use std::ops::{Add, BitAnd, BitOrAssign, BitXor, Div, Mul, MulAssign};
 
-use crate::error::UniswapV3MathError;
+use crate::{error::UniswapV3MathError, U256_ONE};
 // use alloy_primitives::utils::ParseUnits::U256;
 
 use alloy::primitives::{Uint, U256};
@@ -30,9 +30,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
         if denominator == U256::ZERO {
             return Err(UniswapV3MathError::DenominatorIsZero);
         }
-        return Ok(U256::from_little_endian(
-            &prod_0.div(denominator).as_le_bytes(),
-        ));
+        return Ok(U256::from_le_slice(prod_0.div(denominator).as_le_slice()));
     }
 
     // Make sure the result is less than 2**256.
@@ -76,6 +74,8 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
     // Shift in bits from prod1 into prod0. For this we need
     // to flip `twos` such that it is 2**256 / twos.
     // If twos is zero, then it becomes one
+
+    //TODO:FIXME:
     twos = (U256::ZERO.overflowing_sub(twos).0.wrapping_div(twos))
         .add(alloy::primitives::utils::ParseUnits::U256);
 
@@ -107,7 +107,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
     // We don't need to compute the high bits of the result and prod1
     // is no longer required.
 
-    Ok(U256::from_little_endian(&(prod_0 * inv).as_le_bytes()))
+    Ok(U256::from_le_slice((prod_0 * inv).as_le_slice()))
 }
 
 pub fn mul_div_rounding_up(
@@ -121,7 +121,7 @@ pub fn mul_div_rounding_up(
         if result == U256::MAX {
             Err(UniswapV3MathError::ResultIsU256MAX)
         } else {
-            Ok(result + 1)
+            Ok(result + U256_ONE)
         }
     } else {
         Ok(result)
@@ -132,23 +132,23 @@ pub fn mul_div_rounding_up(
 mod tests {
     use super::*;
 
-    const Q128: U256 = U256::from([0, 0, 1, 0]);
+    const Q128: U256 = U256::from_limbs([0, 0, 1, 0]);
 
     #[test]
     fn test_mul_div() {
         //Revert if the denominator is zero
-        let result = mul_div(Q128, U256::from(5), U256::zero());
+        let result = mul_div(Q128, U256::from(5), U256::ZERO);
         assert_eq!(result.err().unwrap().to_string(), "Denominator is 0");
 
         // Revert if the denominator is zero and numerator overflows
-        let result = mul_div(Q128, Q128, U256::zero());
+        let result = mul_div(Q128, Q128, U256::ZERO);
         assert_eq!(
             result.err().unwrap().to_string(),
             "Denominator is less than or equal to prod_1"
         );
 
         // Revert if the output overflows uint256
-        let result = mul_div(Q128, Q128, U256::one());
+        let result = mul_div(Q128, Q128, U256_ONE);
         assert_eq!(
             result.err().unwrap().to_string(),
             "Denominator is less than or equal to prod_1"
@@ -163,32 +163,34 @@ mod test {
 
     use alloy::primitives::U256;
 
+    use crate::U256_ONE;
+
     use super::mul_div;
 
-    const Q128: U256 = U256::from([0, 0, 1, 0]);
+    const Q128: U256 = U256::from_limbs([0, 0, 1, 0]);
 
     #[test]
     fn test_mul_div() {
         //Revert if the denominator is zero
-        let result = mul_div(Q128, U256::from(5), U256::zero());
+        let result = mul_div(Q128, U256::from(5), U256::ZERO);
         assert_eq!(result.err().unwrap().to_string(), "Denominator is 0");
 
         // Revert if the denominator is zero and numerator overflows
-        let result = mul_div(Q128, Q128, U256::zero());
+        let result = mul_div(Q128, Q128, U256::ZERO);
         assert_eq!(
             result.err().unwrap().to_string(),
             "Denominator is less than or equal to prod_1"
         );
 
         // Revert if the output overflows uint256
-        let result = mul_div(Q128, Q128, U256::one());
+        let result = mul_div(Q128, Q128, U256_ONE);
         assert_eq!(
             result.err().unwrap().to_string(),
             "Denominator is less than or equal to prod_1"
         );
 
         // Reverts on overflow with all max inputs
-        let result = mul_div(U256::MAX, U256::MAX, U256::MAX.sub(1));
+        let result = mul_div(U256::MAX, U256::MAX, U256::MAX.sub(U256_ONE));
         assert_eq!(
             result.err().unwrap().to_string(),
             "Denominator is less than or equal to prod_1"
@@ -201,17 +203,20 @@ mod test {
         // Accurate without phantom overflow
         let result = mul_div(
             Q128,
-            U256::from(50).mul(Q128).div(100),
-            U256::from(150).mul(Q128).div(100),
+            U256::from(50).mul(Q128).div(U256::from(100)),
+            U256::from(150).mul(Q128).div(U256::from(100)),
         );
-        assert_eq!(result.unwrap(), Q128.div(3));
+        assert_eq!(result.unwrap(), Q128.div(U256::from(3)));
 
         // Accurate with phantom overflow
         let result = mul_div(Q128, U256::from(35).mul(Q128), U256::from(8).mul(Q128));
-        assert_eq!(result.unwrap(), U256::from(4375).mul(Q128).div(1000));
+        assert_eq!(
+            result.unwrap(),
+            U256::from(4375).mul(Q128).div(U256::from(1000))
+        );
 
         // Accurate with phantom overflow and repeating decimal
         let result = mul_div(Q128, U256::from(1000).mul(Q128), U256::from(3000).mul(Q128));
-        assert_eq!(result.unwrap(), Q128.div(3));
+        assert_eq!(result.unwrap(), Q128.div(U256::from(3)));
     }
 }

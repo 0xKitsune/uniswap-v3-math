@@ -1,3 +1,4 @@
+use alloy::primitives::ruint::ParseError;
 use thiserror::Error;
 
 // TODO: make these errors better, some errors in univ3 libs are just require(condition) without a message.
@@ -38,4 +39,6 @@ pub enum UniswapV3MathError {
     TickSpacingError,
     #[error("Middleware error when getting next_initialized_tick_within_one_word")]
     MiddlewareError(String),
+    #[error("Parse error")]
+    ParseError(#[from] ParseError),
 }

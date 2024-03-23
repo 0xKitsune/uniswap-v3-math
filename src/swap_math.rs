@@ -26,8 +26,8 @@ pub fn compute_swap_step(
     let exact_in = amount_remaining >= I256::zero();
 
     let sqrt_ratio_next_x_96: U256;
-    let mut amount_in = U256::zero();
-    let mut amount_out = U256::zero();
+    let mut amount_in = U256::ZERO;
+    let mut amount_out = U256::ZERO;
 
     if exact_in {
         let amount_remaining_less_fee = mul_div(
@@ -228,7 +228,7 @@ mod test {
 
         //exact amount in that is fully spent in one for zero
         let price = U256::from_dec_str("79228162514264337593543950336").unwrap();
-        let price_target = U256::from("0xe6666666666666666666666666");
+        let price_target = U256::from_str("0xe6666666666666666666666666");
         let liquidity = 2e18 as u128;
         let amount = I256::from_dec_str("1000000000000000000").unwrap();
         let fee = 600;
@@ -375,7 +375,7 @@ mod test {
         let (sqrt_p, amount_in, amount_out, fee_amount) =
             compute_swap_step(price, price_target, liquidity, amount_remaining, fee).unwrap();
 
-        assert_eq!(amount_out, U256::zero());
+        assert_eq!(amount_out, U256::ZERO);
         assert_eq!(sqrt_p, price_target);
         assert_eq!(amount_in, U256::from(26215));
         assert_eq!(fee_amount, U256::from(79));
@@ -397,7 +397,7 @@ mod test {
 
         assert_eq!(amount_out, U256::from(26214));
         assert_eq!(sqrt_p, price_target);
-        assert_eq!(amount_in, U256::one());
-        assert_eq!(fee_amount, U256::one());
+        assert_eq!(amount_in, U256_ONE);
+        assert_eq!(fee_amount, U256_ONE);
     }
 }
