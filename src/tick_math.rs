@@ -14,7 +14,7 @@ pub const MIN_SQRT_RATIO: U256 = U256::from_limbs([4295128739, 0, 0, 0]);
 pub const MAX_SQRT_RATIO: U256 =
     U256::from_limbs([6743328256752651558, 17280870778742802505, 4294805859, 0]);
 
-pub const SQRT_10001: I256 = I256::from_raw(U256::from([11745905768312294533, 13863, 0, 0]));
+pub const SQRT_10001: I256 = I256::from_raw(U256::from_limbs([11745905768312294533, 13863, 0, 0]));
 pub const TICK_LOW: I256 = I256::from_raw(U256::from_limbs([
     6552757943157144234,
     184476617836266586,
@@ -262,12 +262,12 @@ mod test {
         );
         assert_eq!(
             get_sqrt_ratio_at_tick(MAX_TICK - 1).unwrap(),
-            U256::from_dec_str("1461373636630004318706518188784493106690254656249").unwrap(),
+            U256::from_str("1461373636630004318706518188784493106690254656249").unwrap(),
             "sqrt ratio at max - 1 incorrect"
         );
         assert_eq!(
             get_sqrt_ratio_at_tick(MAX_TICK).unwrap(),
-            U256::from_dec_str("1461446703485210103287273052203988822378723970342").unwrap(),
+            U256::from_str("1461446703485210103287273052203988822378723970342").unwrap(),
             "sqrt ratio at max incorrect"
         );
         // checking hard coded values against solidity results
@@ -333,12 +333,12 @@ mod test {
         );
         assert_eq!(
             get_sqrt_ratio_at_tick(500000).unwrap(),
-            U256::from_dec_str("5697689776495288729098254600827762987878").unwrap(),
+            U256::from_str("5697689776495288729098254600827762987878").unwrap(),
             "sqrt ratio at 500000 incorrect"
         );
         assert_eq!(
             get_sqrt_ratio_at_tick(738203).unwrap(),
-            U256::from_dec_str("847134979253254120489401328389043031315994541").unwrap(),
+            U256::from_str("847134979253254120489401328389043031315994541").unwrap(),
             "sqrt ratio at 738203 incorrect"
         );
     }
@@ -358,7 +358,7 @@ mod test {
         assert_eq!(result, MIN_TICK);
 
         //ratio of min tick + 1
-        let result = get_tick_at_sqrt_ratio(U256::from_dec_str("4295343490").unwrap()).unwrap();
+        let result = get_tick_at_sqrt_ratio(U256::from_str("4295343490").unwrap()).unwrap();
         assert_eq!(result, MIN_TICK + 1);
     }
 }

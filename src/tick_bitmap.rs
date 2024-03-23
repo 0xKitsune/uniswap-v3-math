@@ -1,3 +1,4 @@
+use crate::U256_ONE;
 use crate::{bit_math, error::UniswapV3MathError};
 use alloy::primitives::{Address, BlockNumber, U256};
 use alloy::providers::{Network, Provider};
@@ -5,7 +6,8 @@ use alloy::sol;
 use std::{collections::HashMap, sync::Arc};
 
 sol! {
-    interface IUniswapV3Pool {
+    #[sol(rpc)]
+    contract UniswapV3Pool {
         function tick_bitmap(int16) external returns (int16);
     }
 }
@@ -44,7 +46,7 @@ pub fn next_initialized_tick_within_one_word(
     if lte {
         let (word_pos, bit_pos) = position(compressed);
 
-        let mask = (U256_ONE << bit_pos) - 1 + (U256_ONE << bit_pos);
+        let mask = (U256_ONE << bit_pos) - U256_ONE + (U256_ONE << bit_pos);
 
         let masked = *tick_bitmap.get(&word_pos).unwrap_or(&U256::ZERO) & mask;
 
@@ -104,10 +106,10 @@ pub async fn next_initialized_tick_within_one_word_from_provider<P: Provider<N>,
 
     if lte {
         let (word_pos, bit_pos) = position(compressed);
-        let mask = (U256_ONE << bit_pos) - 1 + (U256_ONE << bit_pos);
+        let mask = (U256_ONE << bit_pos) - U256_ONE + (U256_ONE << bit_pos);
 
         let word: U256 = if block_number.is_some() {
-            match abi::IUniswapV3Pool::new(pool_address, middleware)
+            match UniswapV3Pool::new(pool_address, provider)
                 .tick_bitmap(word_pos)
                 .block(block_number.unwrap())
                 .call()
@@ -117,7 +119,7 @@ pub async fn next_initialized_tick_within_one_word_from_provider<P: Provider<N>,
                 Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
             }
         } else {
-            match abi::IUniswapV3Pool::new(pool_address, middleware)
+            match IUniswapV3Pool::new(pool_address, provider)
                 .tick_bitmap(word_pos)
                 .call()
                 .await
@@ -147,7 +149,7 @@ pub async fn next_initialized_tick_within_one_word_from_provider<P: Provider<N>,
         let mask = !((U256_ONE << bit_pos) - U256_ONE);
 
         let word: U256 = if block_number.is_some() {
-            match abi::IUniswapV3Pool::new(pool_address, middleware)
+            match IUniswapV3Pool::new(pool_address, provider)
                 .tick_bitmap(word_pos)
                 .block(block_number.unwrap())
                 .call()
@@ -157,7 +159,7 @@ pub async fn next_initialized_tick_within_one_word_from_provider<P: Provider<N>,
                 Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
             }
         } else {
-            match abi::IUniswapV3Pool::new(pool_address, middleware)
+            match IUniswapV3Pool::new(pool_address, provider)
                 .tick_bitmap(word_pos)
                 .call()
                 .await
@@ -194,7 +196,7 @@ pub fn position(tick: i32) -> (i16, u8) {
 mod test {
     use std::{collections::HashMap, vec};
 
-    use alloy_primitives::U256;
+    use alloy::primitives::U256;
 
     use super::{flip_tick, next_initialized_tick_within_one_word};
 
