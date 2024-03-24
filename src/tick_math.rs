@@ -133,7 +133,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     msb = msb.bitor(f);
     r = r.shr(f);
 
-    f = if r > U256::from_str("0xFFFFFFFFFFFFFFFF") {
+    f = if r > U256::from_str("0xFFFFFFFFFFFFFFFF")? {
         U256_ONE.shl(U256::from(6))
     } else {
         U256::ZERO
@@ -141,7 +141,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     msb = msb.bitor(f);
     r = r.shr(f);
 
-    f = if r > U256::from_str("0xFFFFFFFF") {
+    f = if r > U256::from_str("0xFFFFFFFF")? {
         U256_ONE.shl(U256::from(5))
     } else {
         U256::ZERO
@@ -149,7 +149,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     msb = msb.bitor(f);
     r = r.shr(f);
 
-    f = if r > U256::from_str("0xFFFF") {
+    f = if r > U256::from_str("0xFFFF")? {
         U256_ONE.shl(U256::from(4))
     } else {
         U256::ZERO
@@ -157,7 +157,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     msb = msb.bitor(f);
     r = r.shr(f);
 
-    f = if r > U256::from_str("0xFF") {
+    f = if r > U256::from_str("0xFF")? {
         U256_ONE.shl(U256::from(3))
     } else {
         U256::ZERO
@@ -165,7 +165,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     msb = msb.bitor(f);
     r = r.shr(f);
 
-    f = if r > U256::from_str("0xF") {
+    f = if r > U256::from_str("0xF")? {
         U256_ONE.shl(U256::from(2))
     } else {
         U256::ZERO
@@ -173,7 +173,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     msb = msb.bitor(f);
     r = r.shr(f);
 
-    f = if r > U256::from_str("0x3") {
+    f = if r > U256::from_str("0x3")? {
         U256_ONE.shl(U256::from(1))
     } else {
         U256::ZERO
@@ -181,7 +181,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     msb = msb.bitor(f);
     r = r.shr(f);
 
-    f = if r > U256::from_str("0x1") {
+    f = if r > U256::from_str("0x1")? {
         U256_ONE
     } else {
         U256::ZERO
@@ -195,18 +195,18 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
         ratio.shl(U256::from(127) - msb)
     };
 
-    let mut log_2: I256 = (I256::from_raw(msb) - I256::from(128)).shl(64);
+    let mut log_2: I256 = (I256::from_raw(msb) - I256::from_limbs([0, 0, 0, 128])).shl(64);
 
     for i in (51..=63).rev() {
         r = r.overflowing_mul(r).0.shr(U256::from(127));
-        let f = r.shr(128);
+        let f: U256 = r.shr(128);
         log_2 = log_2.bitor(I256::from_raw(f.shl(i)));
 
         r = r.shr(f);
     }
 
     r = r.overflowing_mul(r).0.shr(U256::from(127));
-    let f = r.shr(128);
+    let f: U256 = r.shr(128);
     log_2 = log_2.bitor(I256::from_raw(f.shl(50)));
 
     let log_sqrt10001 = log_2.wrapping_mul(SQRT_10001);

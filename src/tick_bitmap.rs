@@ -108,14 +108,15 @@ pub async fn next_initialized_tick_within_one_word_from_provider<P: Provider<N>,
         let (word_pos, bit_pos) = position(compressed);
         let mask = (U256_ONE << bit_pos) - U256_ONE + (U256_ONE << bit_pos);
 
-        let word: U256 = if block_number.is_some() {
+        //TODO: use if let Some()
+        let word = if block_number.is_some() {
             match IUniswapV3Pool::new(pool_address, provider)
                 .tick_bitmap(word_pos)
-                .block(block_number.unwrap())
+                .block(block_number.unwrap().into())
                 .call()
                 .await
             {
-                Ok(word) => word,
+                Ok(word) => U256::from(word._0),
                 Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
             }
         } else {
@@ -124,7 +125,7 @@ pub async fn next_initialized_tick_within_one_word_from_provider<P: Provider<N>,
                 .call()
                 .await
             {
-                Ok(word) => word,
+                Ok(word) => U256::from(word._0),
                 Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
             }
         };
@@ -148,14 +149,15 @@ pub async fn next_initialized_tick_within_one_word_from_provider<P: Provider<N>,
         let (word_pos, bit_pos) = position(compressed + 1);
         let mask = !((U256_ONE << bit_pos) - U256_ONE);
 
+        //TODO: use if let Some()
         let word: U256 = if block_number.is_some() {
             match IUniswapV3Pool::new(pool_address, provider)
                 .tick_bitmap(word_pos)
-                .block(block_number.unwrap())
+                .block(block_number.unwrap().into())
                 .call()
                 .await
             {
-                Ok(word) => word,
+                Ok(word) => U256::from(word._0),
                 Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
             }
         } else {
@@ -164,7 +166,7 @@ pub async fn next_initialized_tick_within_one_word_from_provider<P: Provider<N>,
                 .call()
                 .await
             {
-                Ok(word) => word,
+                Ok(word) => U256::from(word._0),
                 Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
             }
         };
