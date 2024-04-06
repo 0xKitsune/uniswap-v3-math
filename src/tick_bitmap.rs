@@ -1,4 +1,4 @@
-use crate::U256_ONE;
+use crate::U256_1;
 use crate::{bit_math, error::UniswapV3MathError};
 use alloy::primitives::{Address, BlockNumber, U256};
 use alloy::providers::Provider;
@@ -23,7 +23,7 @@ pub fn flip_tick(
     }
 
     let (word_pos, bit_pos) = position(tick / tick_spacing);
-    let mask = U256_ONE << bit_pos;
+    let mask = U256_1 << bit_pos;
     let word = *tick_bitmap.get(&word_pos).unwrap_or(&U256::ZERO);
     tick_bitmap.insert(word_pos, word ^ mask);
     Ok(())
@@ -46,7 +46,7 @@ pub fn next_initialized_tick_within_one_word(
     if lte {
         let (word_pos, bit_pos) = position(compressed);
 
-        let mask = (U256_ONE << bit_pos) - U256_ONE + (U256_ONE << bit_pos);
+        let mask = (U256_1 << bit_pos) - U256_1 + (U256_1 << bit_pos);
 
         let masked = *tick_bitmap.get(&word_pos).unwrap_or(&U256::ZERO) & mask;
 
@@ -66,7 +66,7 @@ pub fn next_initialized_tick_within_one_word(
     } else {
         let (word_pos, bit_pos) = position(compressed + 1);
 
-        let mask = !((U256_ONE << bit_pos) - U256_ONE);
+        let mask = !((U256_1 << bit_pos) - U256_1);
 
         let masked = *tick_bitmap.get(&word_pos).unwrap_or(&U256::ZERO) & mask;
 
@@ -106,7 +106,7 @@ pub async fn next_initialized_tick_within_one_word_from_provider<P: Provider>(
 
     if lte {
         let (word_pos, bit_pos) = position(compressed);
-        let mask = (U256_ONE << bit_pos) - U256_ONE + (U256_ONE << bit_pos);
+        let mask = (U256_1 << bit_pos) - U256_1 + (U256_1 << bit_pos);
 
         let word = if let Some(block_number) = block_number {
             match IUniswapV3Pool::new(pool_address, provider)
@@ -146,7 +146,7 @@ pub async fn next_initialized_tick_within_one_word_from_provider<P: Provider>(
         Ok((next, initialized))
     } else {
         let (word_pos, bit_pos) = position(compressed + 1);
-        let mask = !((U256_ONE << bit_pos) - U256_ONE);
+        let mask = !((U256_1 << bit_pos) - U256_1);
 
         let word = if let Some(block_number) = block_number {
             match IUniswapV3Pool::new(pool_address, provider)

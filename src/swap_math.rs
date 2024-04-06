@@ -32,8 +32,8 @@ pub fn compute_swap_step(
     if exact_in {
         let amount_remaining_less_fee = mul_div(
             amount_remaining.into_raw(),
-            U256::from(1e6 as u32 - fee_pips), //1e6 - fee_pips
-            U256::from(1e6 as u32),            //1e6
+            U256::from(1e6 as u32 - fee_pips),    //1e6 - fee_pips
+            U256::from_limbs([1000000, 0, 0, 0]), //1e6
         )?;
 
         amount_in = if zero_for_one {
@@ -154,7 +154,7 @@ mod test {
 
     use crate::sqrt_price_math::{get_next_sqrt_price_from_input, get_next_sqrt_price_from_output};
     use crate::swap_math::compute_swap_step;
-    use crate::U256_ONE;
+    use crate::U256_1;
     use alloy::primitives::{I256, U256};
     use std::str::FromStr;
 
@@ -375,7 +375,6 @@ mod test {
 
         //handles intermediate insufficient liquidity in one for zero exact output case
 
-        //TODO:FIXME: we dont need from str here, can just use from
         let price = U256::from_str("20282409603651670423947251286016").unwrap();
 
         let price_target = price * U256::from(9) / U256::from(10);
@@ -390,7 +389,7 @@ mod test {
 
         assert_eq!(amount_out, U256::from(26214));
         assert_eq!(sqrt_p, price_target);
-        assert_eq!(amount_in, U256_ONE);
-        assert_eq!(fee_amount, U256_ONE);
+        assert_eq!(amount_in, U256_1);
+        assert_eq!(fee_amount, U256_1);
     }
 }

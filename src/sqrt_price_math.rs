@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use alloy::primitives::{I256, U256};
 
 use crate::{
@@ -169,19 +167,19 @@ pub fn _get_amount_1_delta(
         (sqrt_ratio_a_x_96, sqrt_ratio_b_x_96) = (sqrt_ratio_b_x_96, sqrt_ratio_a_x_96)
     };
 
+    let denominator = U256::from_limbs([0, 4294967296, 0, 0]);
+
     if round_up {
         mul_div_rounding_up(
             U256::from(liquidity),
             sqrt_ratio_b_x_96 - sqrt_ratio_a_x_96,
-            //TODO:FIXME: this might not work, we prob need this to be some const from limbs
-            U256::from_str("0x1000000000000000000000000")?,
+            denominator,
         )
     } else {
         mul_div(
             U256::from(liquidity),
             sqrt_ratio_b_x_96 - sqrt_ratio_a_x_96,
-            //TODO:FIXME: this might not work, we prob need this to be some const from limbs
-            U256::from_str("0x1000000000000000000000000")?,
+            denominator,
         )
     }
 }
@@ -241,7 +239,7 @@ mod test {
 
     use crate::{
         sqrt_price_math::{_get_amount_1_delta, get_next_sqrt_price_from_output, MAX_U160},
-        U256_ONE,
+        U256_1, U256_2,
     };
 
     use super::{_get_amount_0_delta, get_next_sqrt_price_from_input};
@@ -259,7 +257,7 @@ mod test {
 
         //Fails if liquidity is zero
         let result =
-            get_next_sqrt_price_from_input(U256_ONE, 0, U256::from(100000000000000000_u128), true);
+            get_next_sqrt_price_from_input(U256_1, 0, U256::from(100000000000000000_u128), true);
         assert_eq!(result.unwrap_err().to_string(), "Liquidity is 0");
 
         //fails if input amount overflows the price
@@ -271,9 +269,8 @@ mod test {
 
         //any input amount cannot underflow the price
         let result = get_next_sqrt_price_from_input(
-            U256_ONE,
+            U256_1,
             1,
-            //TODO:FIXME: might need to be from dec string
             U256::from_str(
                 "57896044618658097711785492504343953926634992332820282019728792003956564819968",
             )
@@ -281,7 +278,7 @@ mod test {
             true,
         );
 
-        assert_eq!(result.unwrap(), U256_ONE);
+        assert_eq!(result.unwrap(), U256_1);
 
         //returns input price if amount in is zero and zeroForOne = true
         let result = get_next_sqrt_price_from_input(
@@ -316,7 +313,7 @@ mod test {
         let max_amount_no_overflow = U256::MAX - ((U256::from(liquidity) << 96) / sqrt_price);
         let result =
             get_next_sqrt_price_from_input(sqrt_price, liquidity, max_amount_no_overflow, true);
-        assert_eq!(result.unwrap(), U256_ONE);
+        assert_eq!(result.unwrap(), U256_1);
 
         //input amount of 0.1 token1
         let result = get_next_sqrt_price_from_input(
@@ -362,11 +359,11 @@ mod test {
         let result = get_next_sqrt_price_from_input(
             U256::from_str("79228162514264337593543950336").unwrap(),
             1,
-            U256::MAX / U256::from_limbs([2, 0, 0, 0]),
+            U256::MAX / U256_2,
             true,
         );
 
-        assert_eq!(result.unwrap(), U256_ONE);
+        assert_eq!(result.unwrap(), U256_1);
     }
 
     #[test]
@@ -376,7 +373,7 @@ mod test {
         assert_eq!(result.unwrap_err().to_string(), "Sqrt price is 0");
 
         //fails if liquidity is zero
-        let result = get_next_sqrt_price_from_output(U256_ONE, 0, U256::from(1000000000), false);
+        let result = get_next_sqrt_price_from_output(U256_1, 0, U256::from(1000000000), false);
         assert_eq!(result.unwrap_err().to_string(), "Liquidity is 0");
 
         //fails if output amount is exactly the virtual reserves of token0
@@ -567,7 +564,7 @@ mod test {
             false,
         );
 
-        assert_eq!(amount_0_rounded_down.unwrap(), amount_0.sub(U256_ONE));
+        assert_eq!(amount_0_rounded_down.unwrap(), amount_0.sub(U256_1));
 
         // works for prices that overflow
         let amount_0_up = _get_amount_0_delta(
@@ -586,7 +583,7 @@ mod test {
         )
         .unwrap();
 
-        assert_eq!(amount_0_up, amount_0_down.add(U256_ONE));
+        assert_eq!(amount_0_up, amount_0_down.add(U256_1));
     }
 
     #[test]
@@ -632,7 +629,7 @@ mod test {
             false,
         );
 
-        assert_eq!(amount_1_rounded_down.unwrap(), amount_1.sub(U256_ONE));
+        assert_eq!(amount_1_rounded_down.unwrap(), amount_1.sub(U256_1));
     }
 
     #[test]

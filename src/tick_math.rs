@@ -5,7 +5,12 @@ use std::{
 
 use alloy::primitives::{I256, U256};
 
-use crate::{error::UniswapV3MathError, U256_ONE};
+use crate::{
+    error::UniswapV3MathError, U256_1, U256_1024, U256_127, U256_128, U256_131072, U256_15,
+    U256_16, U256_16384, U256_2, U256_2048, U256_255, U256_256, U256_262144, U256_3, U256_32,
+    U256_32768, U256_4, U256_4096, U256_5, U256_512, U256_524288, U256_6, U256_64, U256_65536,
+    U256_7, U256_8, U256_8192, U256_MAX_TICK,
+};
 
 pub const MIN_TICK: i32 = -887272;
 pub const MAX_TICK: i32 = -MIN_TICK;
@@ -35,72 +40,72 @@ pub fn get_sqrt_ratio_at_tick(tick: i32) -> Result<U256, UniswapV3MathError> {
         U256::from(tick)
     };
 
-    if abs_tick > U256::from(MAX_TICK) {
+    if abs_tick > U256_MAX_TICK {
         return Err(UniswapV3MathError::T);
     }
 
     //TODO: update all of the `from_str` to const values
-    let mut ratio = if abs_tick & (U256::from(0x1)) != U256::ZERO {
+    let mut ratio = if abs_tick & (U256_1) != U256::ZERO {
         U256::from_str("0xfffcb933bd6fad37aa2d162d1a594001")?
     } else {
         U256::from_str("0x100000000000000000000000000000000")?
     };
 
-    if !(abs_tick & (U256::from(0x2))).is_zero() {
+    if !(abs_tick & U256_2).is_zero() {
         ratio = (ratio * U256::from_str("0xfff97272373d413259a46990580e213a")?) >> 128
     }
-    if !(abs_tick & (U256::from(0x4))).is_zero() {
+    if !(abs_tick & U256_4).is_zero() {
         ratio = (ratio * U256::from_str("0xfff2e50f5f656932ef12357cf3c7fdcc")?) >> 128
     }
-    if !(abs_tick & (U256::from(0x8))).is_zero() {
+    if !(abs_tick & U256_8).is_zero() {
         ratio = (ratio * U256::from_str("0xffe5caca7e10e4e61c3624eaa0941cd0")?) >> 128
     }
-    if !(abs_tick & (U256::from(0x10))).is_zero() {
+    if !(abs_tick & U256_16).is_zero() {
         ratio = (ratio * U256::from_str("0xffcb9843d60f6159c9db58835c926644")?) >> 128
     }
-    if !(abs_tick & (U256::from(0x20))).is_zero() {
+    if !(abs_tick & U256_32).is_zero() {
         ratio = (ratio * U256::from_str("0xff973b41fa98c081472e6896dfb254c0")?) >> 128
     }
-    if !(abs_tick & (U256::from(0x40))).is_zero() {
+    if !(abs_tick & U256_64).is_zero() {
         ratio = (ratio * U256::from_str("0xff2ea16466c96a3843ec78b326b52861")?) >> 128
     }
-    if !(abs_tick & (U256::from(0x80))).is_zero() {
+    if !(abs_tick & U256_128).is_zero() {
         ratio = (ratio * U256::from_str("0xfe5dee046a99a2a811c461f1969c3053")?) >> 128
     }
-    if !(abs_tick & (U256::from(0x100))).is_zero() {
+    if !(abs_tick & U256_256).is_zero() {
         ratio = (ratio * U256::from_str("0xfcbe86c7900a88aedcffc83b479aa3a4")?) >> 128
     }
-    if !(abs_tick & (U256::from(0x200))).is_zero() {
+    if !(abs_tick & U256_512).is_zero() {
         ratio = (ratio * U256::from_str("0xf987a7253ac413176f2b074cf7815e54")?) >> 128
     }
-    if !(abs_tick & (U256::from(0x400))).is_zero() {
+    if !(abs_tick & U256_1024).is_zero() {
         ratio = (ratio * U256::from_str("0xf3392b0822b70005940c7a398e4b70f3")?) >> 128
     }
-    if !(abs_tick & (U256::from(0x800))).is_zero() {
+    if !(abs_tick & U256_2048).is_zero() {
         ratio = (ratio * U256::from_str("0xe7159475a2c29b7443b29c7fa6e889d9")?) >> 128
     }
-    if !(abs_tick & (U256::from(0x1000))).is_zero() {
+    if !(abs_tick & U256_4096).is_zero() {
         ratio = (ratio * U256::from_str("0xd097f3bdfd2022b8845ad8f792aa5825")?) >> 128
     }
-    if !(abs_tick & (U256::from(0x2000))).is_zero() {
+    if !(abs_tick & U256_8192).is_zero() {
         ratio = (ratio * U256::from_str("0xa9f746462d870fdf8a65dc1f90e061e5")?) >> 128
     }
-    if !(abs_tick & (U256::from(0x4000))).is_zero() {
+    if !(abs_tick & U256_16384).is_zero() {
         ratio = (ratio * U256::from_str("0x70d869a156d2a1b890bb3df62baf32f7")?) >> 128
     }
-    if !(abs_tick & (U256::from(0x8000))).is_zero() {
+    if !(abs_tick & U256_32768).is_zero() {
         ratio = (ratio * U256::from_str("0x31be135f97d08fd981231505542fcfa6")?) >> 128
     }
-    if !(abs_tick & (U256::from(0x10000))).is_zero() {
+    if !(abs_tick & U256_65536).is_zero() {
         ratio = (ratio * U256::from_str("0x9aa508b5b7a84e1c677de54f3e99bc9")?) >> 128
     }
-    if !(abs_tick & (U256::from(0x20000))).is_zero() {
+    if !(abs_tick & U256_131072).is_zero() {
         ratio = (ratio * U256::from_str("0x5d6af8dedb81196699c329225ee604")?) >> 128
     }
-    if !(abs_tick & (U256::from(0x40000))).is_zero() {
+    if !(abs_tick & U256_262144).is_zero() {
         ratio = (ratio * U256::from_str("0x2216e584f5fa1ea926041bedfe98")?) >> 128
     }
-    if !(abs_tick & (U256::from(0x80000))).is_zero() {
+    if !(abs_tick & U256_524288).is_zero() {
         ratio = (ratio * U256::from_str("0x48a170391f7dc42444e8fa2")?) >> 128
     }
 
@@ -109,10 +114,10 @@ pub fn get_sqrt_ratio_at_tick(tick: i32) -> Result<U256, UniswapV3MathError> {
     }
 
     Ok((ratio >> 32)
-        + if (ratio.wrapping_rem(U256_ONE << 32)).is_zero() {
+        + if (ratio.wrapping_rem(U256_1 << 32)).is_zero() {
             U256::ZERO
         } else {
-            U256_ONE
+            U256_1
         })
 }
 
@@ -126,7 +131,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     let mut msb = U256::ZERO;
 
     let mut f = if r > U256::from_limbs([18446744073709551615, 18446744073709551615, 0, 0]) {
-        U256_ONE.shl(U256::from(7))
+        U256_1.shl(U256_7)
     } else {
         U256::ZERO
     };
@@ -134,7 +139,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     r = r.shr(f);
 
     f = if r > U256::from_limbs([18446744073709551615, 0, 0, 0]) {
-        U256_ONE.shl(U256::from_limbs([6, 0, 0, 0]))
+        U256_1.shl(U256_6)
     } else {
         U256::ZERO
     };
@@ -142,7 +147,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     r = r.shr(f);
 
     f = if r > U256::from_limbs([4294967295, 0, 0, 0]) {
-        U256_ONE.shl(U256::from_limbs([5, 0, 0, 0]))
+        U256_1.shl(U256_5)
     } else {
         U256::ZERO
     };
@@ -150,58 +155,58 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     r = r.shr(f);
 
     f = if r > U256::from_limbs([65535, 0, 0, 0]) {
-        U256_ONE.shl(U256::from_limbs([4, 0, 0, 0]))
+        U256_1.shl(U256_4)
     } else {
         U256::ZERO
     };
     msb = msb.bitor(f);
     r = r.shr(f);
 
-    f = if r > U256::from_limbs([255, 0, 0, 0]) {
-        U256_ONE.shl(U256::from_limbs([3, 0, 0, 0]))
+    f = if r > U256_255 {
+        U256_1.shl(U256_3)
     } else {
         U256::ZERO
     };
     msb = msb.bitor(f);
     r = r.shr(f);
 
-    f = if r > U256::from_limbs([15, 0, 0, 0]) {
-        U256_ONE.shl(U256::from_limbs([2, 0, 0, 0]))
+    f = if r > U256_15 {
+        U256_1.shl(U256_2)
     } else {
         U256::ZERO
     };
     msb = msb.bitor(f);
     r = r.shr(f);
 
-    f = if r > U256::from_limbs([3, 0, 0, 0]) {
-        U256_ONE.shl(U256_ONE)
+    f = if r > U256_3 {
+        U256_1.shl(U256_1)
     } else {
         U256::ZERO
     };
     msb = msb.bitor(f);
     r = r.shr(f);
 
-    f = if r > U256_ONE { U256_ONE } else { U256::ZERO };
+    f = if r > U256_1 { U256_1 } else { U256::ZERO };
 
     msb = msb.bitor(f);
 
-    r = if msb >= U256::from_limbs([128, 0, 0, 0]) {
-        ratio.shr(msb - U256::from_limbs([127, 0, 0, 0]))
+    r = if msb >= U256_128 {
+        ratio.shr(msb - U256_127)
     } else {
-        ratio.shl(U256::from_limbs([127, 0, 0, 0]) - msb)
+        ratio.shl(U256_127 - msb)
     };
 
     let mut log_2: I256 = (I256::from_raw(msb) - I256::from_limbs([128, 0, 0, 0])).shl(64);
 
     for i in (51..=63).rev() {
-        r = r.overflowing_mul(r).0.shr(U256::from(127));
+        r = r.overflowing_mul(r).0.shr(U256_127);
         let f: U256 = r.shr(128);
         log_2 = log_2.bitor(I256::from_raw(f.shl(i)));
 
         r = r.shr(f);
     }
 
-    r = r.overflowing_mul(r).0.shr(U256::from(127));
+    r = r.overflowing_mul(r).0.shr(U256_127);
     let f: U256 = r.shr(128);
     log_2 = log_2.bitor(I256::from_raw(f.shl(50)));
 
@@ -342,7 +347,7 @@ mod test {
     #[test]
     pub fn test_get_tick_at_sqrt_ratio() {
         //throws for too low
-        let result = get_tick_at_sqrt_ratio(MIN_SQRT_RATIO.sub(U256_ONE));
+        let result = get_tick_at_sqrt_ratio(MIN_SQRT_RATIO.sub(U256_1));
         assert_eq!(result.unwrap_err().to_string(), "Second inequality must be < because the price can never reach the price at the max tick");
 
         //throws for too high

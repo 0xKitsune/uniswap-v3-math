@@ -1,8 +1,10 @@
-use std::{ops::ShrAssign, str::FromStr};
+use std::ops::ShrAssign;
 
 use alloy::primitives::U256;
 
-use crate::{error::UniswapV3MathError, U128_MAX, U16_MAX, U256_ONE, U32_MAX, U64_MAX, U8_MAX};
+use crate::{
+    error::UniswapV3MathError, U128_MAX, U16_MAX, U256_1, U256_15, U256_3, U32_MAX, U64_MAX, U8_MAX,
+};
 
 pub fn most_significant_bit(mut x: U256) -> Result<u8, UniswapV3MathError> {
     let mut r = 0;
@@ -89,19 +91,19 @@ pub fn least_significant_bit(mut x: U256) -> Result<u8, UniswapV3MathError> {
         x >>= 8;
     }
 
-    if x & U256::from_limbs([15, 0, 0, 0]) > U256::ZERO {
+    if x & U256_15 > U256::ZERO {
         r -= 4;
     } else {
         x >>= 4;
     }
 
-    if x & U256::from_limbs([3, 0, 0, 0]) > U256::ZERO {
+    if x & U256_3 > U256::ZERO {
         r -= 2;
     } else {
         x >>= 2;
     }
 
-    if x & U256_ONE > U256::ZERO {
+    if x & U256_1 > U256::ZERO {
         r -= 1;
     }
 
@@ -115,7 +117,7 @@ mod test {
 
     use alloy::primitives::U256;
 
-    use crate::{bit_math::least_significant_bit, U256_ONE};
+    use crate::{bit_math::least_significant_bit, U256_1};
 
     use super::most_significant_bit;
 
@@ -129,7 +131,7 @@ mod test {
         );
 
         //1
-        let result = most_significant_bit(U256_ONE);
+        let result = most_significant_bit(U256_1);
         assert_eq!(result.unwrap(), 0);
 
         //2
@@ -163,7 +165,7 @@ mod test {
         );
 
         //1
-        let result = least_significant_bit(U256_ONE);
+        let result = least_significant_bit(U256_1);
         assert_eq!(result.unwrap(), 0);
 
         //2
