@@ -1,6 +1,6 @@
 [package]
 name = "uniswap_v3_math"
-version = "0.4.1"
+version = "0.5.0"
 edition = "2021"
 license = "MIT"
 description = "Uniswap V3 math in Rust"
@@ -11,42 +11,9 @@ keywords = ["uniswapV3", "math"]
 exclude = ["target/*", ".github/*", ".gitignore", "Uniswap/*"]
 
 [dependencies]
-# ethers = { version = "2.0.0", default-features = false, features = ["abigen"] }
-alloy = { git = "https://github.com/alloy-rs/alloy", rev = "05711f1", features = [
-    # "dyn-abi",
-    # "json-abi",
-    # "json",
-    "sol-types",
-    # "rlp",
-    # "serde",
+alloy = { git = "https://github.com/alloy-rs/alloy", rev = "cd5e0f7", features = [
     "contract",
-    # "consensus",
-    # "eips",
-    "network",
-    # "genesis",
-    "node-bindings",
     "providers",
-    "rpc",
-    # "json-rpc",
-    "rpc-client",
-    # "rpc-types",
-    "rpc-types-eth",
-    # "rpc-types-engine",
-    # "rpc-types-trace",
-    "signers",
-    # "signer-aws",
-    # "signer-gcp",
-    "signer-ledger",
-    "signer-trezor",
-    "signer-wallet",
-    "signer-mnemonic",
-    "signer-yubihsm",
-    # "transports",
-    "transport-http",
-    # "transport-ipc",
-    # "transport-ws",
-    # "pubsub",
 ] }
-
-eyre = "0.6.8"
-thiserror = "1.0.38"
+eyre = "0.6.12"
+thiserror = "1.0.58"
