@@ -108,11 +108,10 @@ pub async fn next_initialized_tick_within_one_word_from_provider<P: Provider>(
         let (word_pos, bit_pos) = position(compressed);
         let mask = (U256_ONE << bit_pos) - U256_ONE + (U256_ONE << bit_pos);
 
-        //TODO: use if let Some()
-        let word = if block_number.is_some() {
+        let word = if let Some(block_number) = block_number {
             match IUniswapV3Pool::new(pool_address, provider)
                 .tick_bitmap(word_pos)
-                .block(block_number.unwrap().into())
+                .block(block_number.into())
                 .call()
                 .await
             {
@@ -149,11 +148,10 @@ pub async fn next_initialized_tick_within_one_word_from_provider<P: Provider>(
         let (word_pos, bit_pos) = position(compressed + 1);
         let mask = !((U256_ONE << bit_pos) - U256_ONE);
 
-        //TODO: use if let Some()
-        let word: U256 = if block_number.is_some() {
+        let word = if let Some(block_number) = block_number {
             match IUniswapV3Pool::new(pool_address, provider)
                 .tick_bitmap(word_pos)
-                .block(block_number.unwrap().into())
+                .block(block_number.into())
                 .call()
                 .await
             {
