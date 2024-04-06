@@ -149,16 +149,15 @@ pub fn compute_swap_step(
     }
 }
 
+#[cfg(test)]
 mod test {
-    use std::str::FromStr;
 
-    use alloy::primitives::{I256, U256};
-
-    #[allow(unused)]
     use crate::sqrt_price_math::{get_next_sqrt_price_from_input, get_next_sqrt_price_from_output};
-    #[allow(unused)]
     use crate::swap_math::compute_swap_step;
     use crate::U256_ONE;
+    use alloy::primitives::{I256, U256};
+    use std::str::FromStr;
+
     #[allow(unused)]
     #[test]
     fn test_compute_swap_step() {

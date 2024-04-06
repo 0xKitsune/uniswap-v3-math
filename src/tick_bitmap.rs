@@ -1,7 +1,7 @@
 use crate::U256_ONE;
 use crate::{bit_math, error::UniswapV3MathError};
 use alloy::primitives::{Address, BlockNumber, U256};
-use alloy::providers::{Network, Provider};
+use alloy::providers::Provider;
 use alloy::sol;
 use std::{collections::HashMap, sync::Arc};
 
