@@ -1,13 +1,13 @@
 use alloy::primitives::U256;
 
-const ONE: U256 = U256::from_limbs([0, 0, 0, 1]);
+use crate::U256_ONE;
 
 pub fn div_rounding_up(a: U256, b: U256) -> U256 {
-    todo!("Implement div_rounding_up");
-    // let (quotient, remainder) = a.div_mod(b);
-    // if remainder.is_zero() {
-    //     quotient
-    // } else {
-    //     quotient + ONE
-    // }
+    let quotient = a.wrapping_div(b);
+    let remainder = a.wrapping_rem(b);
+    if remainder.is_zero() {
+        quotient
+    } else {
+        quotient + U256_ONE
+    }
 }
