@@ -1,8 +1,10 @@
 use std::ops::ShrAssign;
 
-use ethers::types::U256;
+use alloy::primitives::U256;
 
-use crate::error::UniswapV3MathError;
+use crate::{
+    error::UniswapV3MathError, U128_MAX, U16_MAX, U256_1, U256_15, U256_3, U32_MAX, U64_MAX, U8_MAX,
+};
 
 pub fn most_significant_bit(mut x: U256) -> Result<u8, UniswapV3MathError> {
     let mut r = 0;
@@ -11,41 +13,41 @@ pub fn most_significant_bit(mut x: U256) -> Result<u8, UniswapV3MathError> {
         return Err(UniswapV3MathError::ZeroValue);
     }
 
-    if x >= U256::from("0x100000000000000000000000000000000") {
+    if x >= U256::from_limbs([0, 0, 1, 0]) {
         x.shr_assign(128);
         r += 128;
     }
 
-    if x >= U256::from("0x10000000000000000") {
+    if x >= U256::from_limbs([0, 1, 0, 0]) {
         x.shr_assign(64);
         r += 64;
     }
 
-    if x >= U256::from("0x100000000") {
+    if x >= U256::from_limbs([4294967296, 0, 0, 0]) {
         x.shr_assign(32);
         r += 32;
     }
 
-    if x >= U256::from("0x10000") {
+    if x >= U256::from_limbs([65536, 0, 0, 0]) {
         x.shr_assign(16);
         r += 16;
     }
 
-    if x >= U256::from("0x100") {
+    if x >= U256::from_limbs([256, 0, 0, 0]) {
         x.shr_assign(8);
         r += 8;
     }
 
-    if x >= U256::from("0x10") {
+    if x >= U256::from_limbs([16, 0, 0, 0]) {
         x.shr_assign(4);
         r += 4;
     }
-    if x >= U256::from("0x4") {
+    if x >= U256::from_limbs([4, 0, 0, 0]) {
         x.shr_assign(2);
         r += 2;
     }
 
-    if x >= U256::from("0x2") {
+    if x >= U256::from_limbs([2, 0, 0, 0]) {
         r += 1;
     }
 
@@ -59,51 +61,49 @@ pub fn least_significant_bit(mut x: U256) -> Result<u8, UniswapV3MathError> {
 
     let mut r = 255;
 
-    //TODO: update this to use constants for each U256 comparison
-
-    if x & U256::from(u128::MAX) > U256::zero() {
+    if x & U128_MAX > U256::ZERO {
         r -= 128;
     } else {
         x >>= 128;
     }
 
-    if x & U256::from(u64::MAX) > U256::zero() {
+    if x & U64_MAX > U256::ZERO {
         r -= 64;
     } else {
         x >>= 64;
     }
 
-    if x & U256::from(u32::MAX) > U256::zero() {
+    if x & U32_MAX > U256::ZERO {
         r -= 32;
     } else {
         x >>= 32;
     }
 
-    if x & U256::from(u16::MAX) > U256::zero() {
+    if x & U16_MAX > U256::ZERO {
         r -= 16;
     } else {
         x >>= 16;
     }
 
-    if x & U256::from(u8::MAX) > U256::zero() {
+    if x & U8_MAX > U256::ZERO {
         r -= 8;
     } else {
         x >>= 8;
     }
 
-    if x & U256::from("0xf") > U256::zero() {
+    if x & U256_15 > U256::ZERO {
         r -= 4;
     } else {
         x >>= 4;
     }
 
-    if x & U256::from("0x3") > U256::zero() {
+    if x & U256_3 > U256::ZERO {
         r -= 2;
     } else {
         x >>= 2;
     }
 
-    if x & U256::from("0x1") > U256::zero() {
+    if x & U256_1 > U256::ZERO {
         r -= 1;
     }
 
@@ -113,23 +113,25 @@ pub fn least_significant_bit(mut x: U256) -> Result<u8, UniswapV3MathError> {
 #[cfg(test)]
 mod test {
 
-    use ethers::types::U256;
+    use std::str::FromStr;
 
-    use crate::bit_math::least_significant_bit;
+    use alloy::primitives::U256;
+
+    use crate::{bit_math::least_significant_bit, U256_1};
 
     use super::most_significant_bit;
 
     #[test]
     fn test_most_significant_bit() {
         //0
-        let result = most_significant_bit(U256::zero());
+        let result = most_significant_bit(U256::ZERO);
         assert_eq!(
             result.unwrap_err().to_string(),
             "Can not get most significant bit or least significant bit on zero value"
         );
 
         //1
-        let result = most_significant_bit(U256::one());
+        let result = most_significant_bit(U256_1);
         assert_eq!(result.unwrap(), 0);
 
         //2
@@ -144,7 +146,8 @@ mod test {
 
         //uint256(-1)
         let result = most_significant_bit(
-            U256::from_dec_str(
+            //TODO:FIXME: might need to be from dec string
+            U256::from_str(
                 "115792089237316195423570985008687907853269984665640564039457584007913129639935",
             )
             .unwrap(),
@@ -155,14 +158,14 @@ mod test {
     #[test]
     fn test_least_significant_bit() {
         //0
-        let result = least_significant_bit(U256::zero());
+        let result = least_significant_bit(U256::ZERO);
         assert_eq!(
             result.unwrap_err().to_string(),
             "Can not get most significant bit or least significant bit on zero value"
         );
 
         //1
-        let result = least_significant_bit(U256::one());
+        let result = least_significant_bit(U256_1);
         assert_eq!(result.unwrap(), 0);
 
         //2
@@ -177,7 +180,8 @@ mod test {
 
         //uint256(-1)
         let result = least_significant_bit(
-            U256::from_dec_str(
+            //TODO:FIXME: might need to be from dec string
+            U256::from_str(
                 "115792089237316195423570985008687907853269984665640564039457584007913129639935",
             )
             .unwrap(),

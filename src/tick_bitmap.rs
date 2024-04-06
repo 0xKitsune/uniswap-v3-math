@@ -1,9 +1,16 @@
-use crate::{abi, bit_math, error::UniswapV3MathError};
-use ethers::{
-    providers::Middleware,
-    types::{BlockNumber, H160, U256},
-};
+use crate::U256_1;
+use crate::{bit_math, error::UniswapV3MathError};
+use alloy::primitives::{Address, BlockNumber, U256};
+use alloy::providers::Provider;
+use alloy::sol;
 use std::{collections::HashMap, sync::Arc};
+
+sol! {
+    #[sol(rpc)]
+    interface IUniswapV3Pool {
+        function tick_bitmap(int16) external returns (int16);
+    }
+}
 
 //Flips the initialized state for a given tick from false to true, or vice versa
 pub fn flip_tick(
@@ -16,8 +23,8 @@ pub fn flip_tick(
     }
 
     let (word_pos, bit_pos) = position(tick / tick_spacing);
-    let mask = U256::one() << bit_pos;
-    let word = *tick_bitmap.get(&word_pos).unwrap_or(&U256::zero());
+    let mask = U256_1 << bit_pos;
+    let word = *tick_bitmap.get(&word_pos).unwrap_or(&U256::ZERO);
     tick_bitmap.insert(word_pos, word ^ mask);
     Ok(())
 }
@@ -39,9 +46,9 @@ pub fn next_initialized_tick_within_one_word(
     if lte {
         let (word_pos, bit_pos) = position(compressed);
 
-        let mask = (U256::one() << bit_pos) - 1 + (U256::one() << bit_pos);
+        let mask = (U256_1 << bit_pos) - U256_1 + (U256_1 << bit_pos);
 
-        let masked = *tick_bitmap.get(&word_pos).unwrap_or(&U256::zero()) & mask;
+        let masked = *tick_bitmap.get(&word_pos).unwrap_or(&U256::ZERO) & mask;
 
         let initialized = !masked.is_zero();
 
@@ -59,9 +66,9 @@ pub fn next_initialized_tick_within_one_word(
     } else {
         let (word_pos, bit_pos) = position(compressed + 1);
 
-        let mask = !((U256::one() << bit_pos) - U256::one());
+        let mask = !((U256_1 << bit_pos) - U256_1);
 
-        let masked = *tick_bitmap.get(&word_pos).unwrap_or(&U256::zero()) & mask;
+        let masked = *tick_bitmap.get(&word_pos).unwrap_or(&U256::ZERO) & mask;
 
         let initialized = !masked.is_zero();
 
@@ -83,13 +90,13 @@ pub fn next_initialized_tick_within_one_word(
 //Returns next and initialized. This function calls the node to get the word at the word_pos.
 //current_word is the current word in the TickBitmap of the pool based on `tick`. TickBitmap[word_pos] = current_word
 //Where word_pos is the 256 bit offset of the ticks word_pos.. word_pos := tick >> 8
-pub async fn next_initialized_tick_within_one_word_from_provider<M: Middleware>(
+pub async fn next_initialized_tick_within_one_word_from_provider<P: Provider>(
     tick: i32,
     tick_spacing: i32,
     lte: bool,
-    pool_address: H160,
+    pool_address: Address,
     block_number: Option<BlockNumber>,
-    middleware: Arc<M>,
+    provider: Arc<P>,
 ) -> Result<(i32, bool), UniswapV3MathError> {
     let compressed = if tick < 0 && tick % tick_spacing != 0 {
         (tick / tick_spacing) - 1
@@ -99,25 +106,25 @@ pub async fn next_initialized_tick_within_one_word_from_provider<M: Middleware>(
 
     if lte {
         let (word_pos, bit_pos) = position(compressed);
-        let mask = (U256::one() << bit_pos) - 1 + (U256::one() << bit_pos);
+        let mask = (U256_1 << bit_pos) - U256_1 + (U256_1 << bit_pos);
 
-        let word: U256 = if block_number.is_some() {
-            match abi::IUniswapV3Pool::new(pool_address, middleware)
+        let word = if let Some(block_number) = block_number {
+            match IUniswapV3Pool::new(pool_address, provider)
                 .tick_bitmap(word_pos)
-                .block(block_number.unwrap())
+                .block(block_number.into())
                 .call()
                 .await
             {
-                Ok(word) => word,
+                Ok(word) => U256::from(word._0),
                 Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
             }
         } else {
-            match abi::IUniswapV3Pool::new(pool_address, middleware)
+            match IUniswapV3Pool::new(pool_address, provider)
                 .tick_bitmap(word_pos)
                 .call()
                 .await
             {
-                Ok(word) => word,
+                Ok(word) => U256::from(word._0),
                 Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
             }
         };
@@ -139,25 +146,25 @@ pub async fn next_initialized_tick_within_one_word_from_provider<M: Middleware>(
         Ok((next, initialized))
     } else {
         let (word_pos, bit_pos) = position(compressed + 1);
-        let mask = !((U256::one() << bit_pos) - U256::one());
+        let mask = !((U256_1 << bit_pos) - U256_1);
 
-        let word: U256 = if block_number.is_some() {
-            match abi::IUniswapV3Pool::new(pool_address, middleware)
+        let word = if let Some(block_number) = block_number {
+            match IUniswapV3Pool::new(pool_address, provider)
                 .tick_bitmap(word_pos)
-                .block(block_number.unwrap())
+                .block(block_number.into())
                 .call()
                 .await
             {
-                Ok(word) => word,
+                Ok(word) => U256::from(word._0),
                 Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
             }
         } else {
-            match abi::IUniswapV3Pool::new(pool_address, middleware)
+            match IUniswapV3Pool::new(pool_address, provider)
                 .tick_bitmap(word_pos)
                 .call()
                 .await
             {
-                Ok(word) => word,
+                Ok(word) => U256::from(word._0),
                 Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
             }
         };
@@ -189,7 +196,7 @@ pub fn position(tick: i32) -> (i16, u8) {
 mod test {
     use std::{collections::HashMap, vec};
 
-    use ethers::types::U256;
+    use alloy::primitives::U256;
 
     use super::{flip_tick, next_initialized_tick_within_one_word};
 
