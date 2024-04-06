@@ -184,7 +184,7 @@ mod test {
         assert_eq!(fee_amount, U256::from_str("5988667735148").unwrap());
         assert_eq!(amount_out, U256::from_str("9925619580021728").unwrap());
 
-        assert!(amount_in + fee_amount < U256::from_le_bytes(amount.to_le_bytes()));
+        assert!(amount_in + fee_amount < U256::from_limbs(*amount.as_limbs()));
 
         let price_after_whole_input_amount =
             get_next_sqrt_price_from_input(price, liquidity, amount_in, zero_for_one).unwrap();
@@ -210,7 +210,7 @@ mod test {
         assert_eq!(amount_out, U256::from_str("9925619580021728").unwrap());
         assert!(amount_out < (amount * -I256::ONE).into_raw());
 
-        assert!(amount_in + fee_amount < U256::from_le_bytes(amount.to_le_bytes()));
+        assert!(amount_in + fee_amount < U256::from_limbs(*amount.as_limbs()));
 
         let price_after_whole_output_amount = get_next_sqrt_price_from_output(
             price,

@@ -91,19 +91,19 @@ pub fn least_significant_bit(mut x: U256) -> Result<u8, UniswapV3MathError> {
         x >>= 8;
     }
 
-    if x & U256::from_str("0xf")? > U256::ZERO {
+    if x & U256::from(0xf) > U256::ZERO {
         r -= 4;
     } else {
         x >>= 4;
     }
 
-    if x & U256::from_str("0x3")? > U256::ZERO {
+    if x & U256::from(0x3) > U256::ZERO {
         r -= 2;
     } else {
         x >>= 2;
     }
 
-    if x & U256::from_str("0x1")? > U256::ZERO {
+    if x & U256::from(0x1) > U256::ZERO {
         r -= 1;
     }
 

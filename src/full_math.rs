@@ -22,7 +22,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
     let mut prod_1 = mm
         .overflowing_sub(prod_0)
         .0
-        .overflowing_sub(alloy::primitives::Uint::<256, 4>::from((mm < prod_0) as u8))
+        .overflowing_sub(U256::from((mm < prod_0) as u8))
         .0;
 
     // Handle non-overflow cases, 256 by 256 division
@@ -30,7 +30,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
         if denominator == U256::ZERO {
             return Err(UniswapV3MathError::DenominatorIsZero);
         }
-        return Ok(U256::from_le_slice(prod_0.div(denominator).as_le_slice()));
+        return Ok(U256::from_limbs(*prod_0.div(denominator).as_limbs()));
     }
 
     // Make sure the result is less than 2**256.
@@ -75,9 +75,7 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
     // to flip `twos` such that it is 2**256 / twos.
     // If twos is zero, then it becomes one
 
-    //TODO:FIXME:
-    twos = (U256::ZERO.overflowing_sub(twos).0.wrapping_div(twos))
-        .add(alloy::primitives::utils::ParseUnits::U256);
+    twos = (U256::ZERO.overflowing_sub(twos).0.wrapping_div(twos)).add(U256_ONE);
 
     prod_0.bitor_assign(prod_1 * twos);
 

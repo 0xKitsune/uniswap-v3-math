@@ -12,7 +12,7 @@ exclude = ["target/*", ".github/*", ".gitignore", "Uniswap/*"]
 
 [dependencies]
 # ethers = { version = "2.0.0", default-features = false, features = ["abigen"] }
-alloy = { git = "https://github.com/alloy-rs/alloy", rev = "fd8f065", features = [
+alloy = { git = "https://github.com/alloy-rs/alloy", rev = "05711f1", features = [
     # "dyn-abi",
     # "json-abi",
     # "json",
@@ -50,16 +50,3 @@ alloy = { git = "https://github.com/alloy-rs/alloy", rev = "fd8f065", features =
 
 eyre = "0.6.8"
 thiserror = "1.0.38"
-
-
-# TODO: sol! macro somehow requires this to be present
-alloy-sol-types = { version = "0.6.4", default-features = false, features = [
-    "std",
-] }
-
-[patch.crates-io]
-alloy-core = { git = "https://github.com/alloy-rs/core", rev = "907d61a45a9135e979310990744080eef5f03fe5" }
-alloy-dyn-abi = { git = "https://github.com/alloy-rs/core", rev = "907d61a45a9135e979310990744080eef5f03fe5" }
-alloy-json-abi = { git = "https://github.com/alloy-rs/core", rev = "907d61a45a9135e979310990744080eef5f03fe5" }
-alloy-primitives = { git = "https://github.com/alloy-rs/core", rev = "907d61a45a9135e979310990744080eef5f03fe5" }
-alloy-sol-types = { git = "https://github.com/alloy-rs/core", rev = "907d61a45a9135e979310990744080eef5f03fe5" }

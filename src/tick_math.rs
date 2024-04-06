@@ -109,7 +109,7 @@ pub fn get_sqrt_ratio_at_tick(tick: i32) -> Result<U256, UniswapV3MathError> {
     }
 
     Ok((ratio >> 32)
-        + if (ratio % (U256_ONE << 32)).is_zero() {
+        + if (ratio.wrapping_rem(U256_ONE << 32)).is_zero() {
             U256::ZERO
         } else {
             U256_ONE
@@ -252,12 +252,12 @@ mod test {
         // test individual values for correct results
         assert_eq!(
             get_sqrt_ratio_at_tick(MIN_TICK).unwrap(),
-            4295128739u64.into(),
+            U256::from(4295128739u64),
             "sqrt ratio at min incorrect"
         );
         assert_eq!(
             get_sqrt_ratio_at_tick(MIN_TICK + 1).unwrap(),
-            4295343490u64.into(),
+            U256::from(4295343490u64),
             "sqrt ratio at min + 1 incorrect"
         );
         assert_eq!(
@@ -273,62 +273,62 @@ mod test {
         // checking hard coded values against solidity results
         assert_eq!(
             get_sqrt_ratio_at_tick(50).unwrap(),
-            79426470787362580746886972461u128.into(),
+            U256::from(79426470787362580746886972461u128),
             "sqrt ratio at 50 incorrect"
         );
         assert_eq!(
             get_sqrt_ratio_at_tick(100).unwrap(),
-            79625275426524748796330556128u128.into(),
+            U256::from(79625275426524748796330556128u128),
             "sqrt ratio at 100 incorrect"
         );
         assert_eq!(
             get_sqrt_ratio_at_tick(250).unwrap(),
-            80224679980005306637834519095u128.into(),
+            U256::from(80224679980005306637834519095u128),
             "sqrt ratio at 250 incorrect"
         );
         assert_eq!(
             get_sqrt_ratio_at_tick(500).unwrap(),
-            81233731461783161732293370115u128.into(),
+            U256::from(81233731461783161732293370115u128),
             "sqrt ratio at 500 incorrect"
         );
         assert_eq!(
             get_sqrt_ratio_at_tick(1000).unwrap(),
-            83290069058676223003182343270u128.into(),
+            U256::from(83290069058676223003182343270u128),
             "sqrt ratio at 1000 incorrect"
         );
         assert_eq!(
             get_sqrt_ratio_at_tick(2500).unwrap(),
-            89776708723587163891445672585u128.into(),
+            U256::from(89776708723587163891445672585u128),
             "sqrt ratio at 2500 incorrect"
         );
         assert_eq!(
             get_sqrt_ratio_at_tick(3000).unwrap(),
-            92049301871182272007977902845u128.into(),
+            U256::from(92049301871182272007977902845u128),
             "sqrt ratio at 3000 incorrect"
         );
         assert_eq!(
             get_sqrt_ratio_at_tick(4000).unwrap(),
-            96768528593268422080558758223u128.into(),
+            U256::from(96768528593268422080558758223u128),
             "sqrt ratio at 4000 incorrect"
         );
         assert_eq!(
             get_sqrt_ratio_at_tick(5000).unwrap(),
-            101729702841318637793976746270u128.into(),
+            U256::from(101729702841318637793976746270u128),
             "sqrt ratio at 5000 incorrect"
         );
         assert_eq!(
             get_sqrt_ratio_at_tick(50000).unwrap(),
-            965075977353221155028623082916u128.into(),
+            U256::from(965075977353221155028623082916u128),
             "sqrt ratio at 50000 incorrect"
         );
         assert_eq!(
             get_sqrt_ratio_at_tick(150000).unwrap(),
-            143194173941309278083010301478497u128.into(),
+            U256::from(143194173941309278083010301478497u128),
             "sqrt ratio at 150000 incorrect"
         );
         assert_eq!(
             get_sqrt_ratio_at_tick(250000).unwrap(),
-            21246587762933397357449903968194344u128.into(),
+            U256::from(21246587762933397357449903968194344u128),
             "sqrt ratio at 250000 incorrect"
         );
         assert_eq!(
@@ -346,7 +346,7 @@ mod test {
     #[test]
     pub fn test_get_tick_at_sqrt_ratio() {
         //throws for too low
-        let result = get_tick_at_sqrt_ratio(MIN_SQRT_RATIO.sub(1));
+        let result = get_tick_at_sqrt_ratio(MIN_SQRT_RATIO.sub(U256_ONE));
         assert_eq!(result.unwrap_err().to_string(), "Second inequality must be < because the price can never reach the price at the max tick");
 
         //throws for too high
