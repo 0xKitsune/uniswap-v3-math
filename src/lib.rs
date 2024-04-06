@@ -12,4 +12,3 @@ pub mod tick_math;
 pub mod unsafe_math;
 
 const U256_ONE: U256 = U256::from_limbs([1, 0, 0, 0]);
-const U256_TWO: U256 = U256::from_limbs([2, 0, 0, 0]);

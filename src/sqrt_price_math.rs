@@ -241,7 +241,7 @@ mod test {
 
     use crate::{
         sqrt_price_math::{_get_amount_1_delta, get_next_sqrt_price_from_output, MAX_U160},
-        U256_ONE, U256_TWO,
+        U256_ONE,
     };
 
     use super::{_get_amount_0_delta, get_next_sqrt_price_from_input};
@@ -362,7 +362,7 @@ mod test {
         let result = get_next_sqrt_price_from_input(
             U256::from_str("79228162514264337593543950336").unwrap(),
             1,
-            U256::MAX / U256_TWO,
+            U256::MAX / U256::from_limbs([2, 0, 0, 0]),
             true,
         );
 

@@ -30,7 +30,7 @@ pub const TICK_HIGH: I256 = I256::from_raw(U256::from_limbs([
 
 pub fn get_sqrt_ratio_at_tick(tick: i32) -> Result<U256, UniswapV3MathError> {
     let abs_tick = if tick < 0 {
-        U256::from_le_bytes(tick.neg().to_le_bytes())
+        U256::from(tick.neg())
     } else {
         U256::from(tick)
     };
@@ -125,7 +125,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     let mut r = ratio;
     let mut msb = U256::ZERO;
 
-    let mut f = if r > U256::from_str("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")? {
+    let mut f = if r > U256::from_limbs([18446744073709551615, 18446744073709551615, 0, 0]) {
         U256_ONE.shl(U256::from(7))
     } else {
         U256::ZERO
@@ -133,69 +133,65 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
     msb = msb.bitor(f);
     r = r.shr(f);
 
-    f = if r > U256::from_str("0xFFFFFFFFFFFFFFFF")? {
-        U256_ONE.shl(U256::from(6))
+    f = if r > U256::from_limbs([18446744073709551615, 0, 0, 0]) {
+        U256_ONE.shl(U256::from_limbs([6, 0, 0, 0]))
     } else {
         U256::ZERO
     };
     msb = msb.bitor(f);
     r = r.shr(f);
 
-    f = if r > U256::from_str("0xFFFFFFFF")? {
-        U256_ONE.shl(U256::from(5))
+    f = if r > U256::from_limbs([4294967295, 0, 0, 0]) {
+        U256_ONE.shl(U256::from_limbs([5, 0, 0, 0]))
     } else {
         U256::ZERO
     };
     msb = msb.bitor(f);
     r = r.shr(f);
 
-    f = if r > U256::from_str("0xFFFF")? {
-        U256_ONE.shl(U256::from(4))
+    f = if r > U256::from_limbs([65535, 0, 0, 0]) {
+        U256_ONE.shl(U256::from_limbs([4, 0, 0, 0]))
     } else {
         U256::ZERO
     };
     msb = msb.bitor(f);
     r = r.shr(f);
 
-    f = if r > U256::from_str("0xFF")? {
-        U256_ONE.shl(U256::from(3))
+    f = if r > U256::from_limbs([255, 0, 0, 0]) {
+        U256_ONE.shl(U256::from_limbs([3, 0, 0, 0]))
     } else {
         U256::ZERO
     };
     msb = msb.bitor(f);
     r = r.shr(f);
 
-    f = if r > U256::from_str("0xF")? {
-        U256_ONE.shl(U256::from(2))
+    f = if r > U256::from_limbs([15, 0, 0, 0]) {
+        U256_ONE.shl(U256::from_limbs([2, 0, 0, 0]))
     } else {
         U256::ZERO
     };
     msb = msb.bitor(f);
     r = r.shr(f);
 
-    f = if r > U256::from_str("0x3")? {
-        U256_ONE.shl(U256::from(1))
+    f = if r > U256::from_limbs([3, 0, 0, 0]) {
+        U256_ONE.shl(U256_ONE)
     } else {
         U256::ZERO
     };
     msb = msb.bitor(f);
     r = r.shr(f);
 
-    f = if r > U256::from_str("0x1")? {
-        U256_ONE
-    } else {
-        U256::ZERO
-    };
+    f = if r > U256_ONE { U256_ONE } else { U256::ZERO };
 
     msb = msb.bitor(f);
 
-    r = if msb >= U256::from(128) {
-        ratio.shr(msb - U256::from(127))
+    r = if msb >= U256::from_limbs([128, 0, 0, 0]) {
+        ratio.shr(msb - U256::from_limbs([127, 0, 0, 0]))
     } else {
-        ratio.shl(U256::from(127) - msb)
+        ratio.shl(U256::from_limbs([127, 0, 0, 0]) - msb)
     };
 
-    let mut log_2: I256 = (I256::from_raw(msb) - I256::from_limbs([0, 0, 0, 128])).shl(64);
+    let mut log_2: I256 = (I256::from_raw(msb) - I256::from_limbs([128, 0, 0, 0])).shl(64);
 
     for i in (51..=63).rev() {
         r = r.overflowing_mul(r).0.shr(U256::from(127));
@@ -233,7 +229,7 @@ mod test {
     use std::ops::Sub;
 
     #[test]
-    fn get_sqrt_ratio_at_tick_bounds() {
+    fn test_get_sqrt_ratio_at_tick_bounds() {
         // the function should return an error if the tick is out of bounds
         if let Err(err) = get_sqrt_ratio_at_tick(MIN_TICK - 1) {
             assert!(matches!(err, UniswapV3MathError::T));
@@ -248,7 +244,7 @@ mod test {
     }
 
     #[test]
-    fn get_sqrt_ratio_at_tick_values() {
+    fn test_get_sqrt_ratio_at_tick_values() {
         // test individual values for correct results
         assert_eq!(
             get_sqrt_ratio_at_tick(MIN_TICK).unwrap(),
