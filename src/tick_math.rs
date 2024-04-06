@@ -1,9 +1,5 @@
-use std::{
-    ops::{BitOr, Neg, Shl, Shr},
-    str::FromStr,
-};
-
 use alloy::primitives::{I256, U256};
+use std::ops::{BitOr, Neg, Shl, Shr};
 
 use crate::{
     error::UniswapV3MathError, U256_1, U256_1024, U256_127, U256_128, U256_131072, U256_15,
@@ -44,69 +40,72 @@ pub fn get_sqrt_ratio_at_tick(tick: i32) -> Result<U256, UniswapV3MathError> {
         return Err(UniswapV3MathError::T);
     }
 
-    //TODO: update all of the `from_str` to const values
     let mut ratio = if abs_tick & (U256_1) != U256::ZERO {
-        U256::from_str("0xfffcb933bd6fad37aa2d162d1a594001")?
+        U256::from_limbs([12262481743371124737, 18445821805675392311, 0, 0])
     } else {
-        U256::from_str("0x100000000000000000000000000000000")?
+        U256::from_limbs([0, 0, 1, 0])
     };
 
     if !(abs_tick & U256_2).is_zero() {
-        ratio = (ratio * U256::from_str("0xfff97272373d413259a46990580e213a")?) >> 128
+        ratio = (ratio * U256::from_limbs([6459403834229662010, 18444899583751176498, 0, 0])) >> 128
     }
     if !(abs_tick & U256_4).is_zero() {
-        ratio = (ratio * U256::from_str("0xfff2e50f5f656932ef12357cf3c7fdcc")?) >> 128
+        ratio =
+            (ratio * U256::from_limbs([17226890335427755468, 18443055278223354162, 0, 0])) >> 128
     }
     if !(abs_tick & U256_8).is_zero() {
-        ratio = (ratio * U256::from_str("0xffe5caca7e10e4e61c3624eaa0941cd0")?) >> 128
+        ratio = (ratio * U256::from_limbs([2032852871939366096, 18439367220385604838, 0, 0])) >> 128
     }
     if !(abs_tick & U256_16).is_zero() {
-        ratio = (ratio * U256::from_str("0xffcb9843d60f6159c9db58835c926644")?) >> 128
+        ratio =
+            (ratio * U256::from_limbs([14545316742740207172, 18431993317065449817, 0, 0])) >> 128
     }
     if !(abs_tick & U256_32).is_zero() {
-        ratio = (ratio * U256::from_str("0xff973b41fa98c081472e6896dfb254c0")?) >> 128
+        ratio = (ratio * U256::from_limbs([5129152022828963008, 18417254355718160513, 0, 0])) >> 128
     }
     if !(abs_tick & U256_64).is_zero() {
-        ratio = (ratio * U256::from_str("0xff2ea16466c96a3843ec78b326b52861")?) >> 128
+        ratio = (ratio * U256::from_limbs([4894419605888772193, 18387811781193591352, 0, 0])) >> 128
     }
     if !(abs_tick & U256_128).is_zero() {
-        ratio = (ratio * U256::from_str("0xfe5dee046a99a2a811c461f1969c3053")?) >> 128
+        ratio = (ratio * U256::from_limbs([1280255884321894483, 18329067761203520168, 0, 0])) >> 128
     }
     if !(abs_tick & U256_256).is_zero() {
-        ratio = (ratio * U256::from_str("0xfcbe86c7900a88aedcffc83b479aa3a4")?) >> 128
+        ratio =
+            (ratio * U256::from_limbs([15924666964335305636, 18212142134806087854, 0, 0])) >> 128
     }
     if !(abs_tick & U256_512).is_zero() {
-        ratio = (ratio * U256::from_str("0xf987a7253ac413176f2b074cf7815e54")?) >> 128
+        ratio = (ratio * U256::from_limbs([8010504389359918676, 17980523815641551639, 0, 0])) >> 128
     }
     if !(abs_tick & U256_1024).is_zero() {
-        ratio = (ratio * U256::from_str("0xf3392b0822b70005940c7a398e4b70f3")?) >> 128
+        ratio =
+            (ratio * U256::from_limbs([10668036004952895731, 17526086738831147013, 0, 0])) >> 128
     }
     if !(abs_tick & U256_2048).is_zero() {
-        ratio = (ratio * U256::from_str("0xe7159475a2c29b7443b29c7fa6e889d9")?) >> 128
+        ratio = (ratio * U256::from_limbs([4878133418470705625, 16651378430235024244, 0, 0])) >> 128
     }
     if !(abs_tick & U256_4096).is_zero() {
-        ratio = (ratio * U256::from_str("0xd097f3bdfd2022b8845ad8f792aa5825")?) >> 128
+        ratio = (ratio * U256::from_limbs([9537173718739605541, 15030750278693429944, 0, 0])) >> 128
     }
     if !(abs_tick & U256_8192).is_zero() {
-        ratio = (ratio * U256::from_str("0xa9f746462d870fdf8a65dc1f90e061e5")?) >> 128
+        ratio = (ratio * U256::from_limbs([9972618978014552549, 12247334978882834399, 0, 0])) >> 128
     }
     if !(abs_tick & U256_16384).is_zero() {
-        ratio = (ratio * U256::from_str("0x70d869a156d2a1b890bb3df62baf32f7")?) >> 128
+        ratio = (ratio * U256::from_limbs([10428997489610666743, 8131365268884726200, 0, 0])) >> 128
     }
     if !(abs_tick & U256_32768).is_zero() {
-        ratio = (ratio * U256::from_str("0x31be135f97d08fd981231505542fcfa6")?) >> 128
+        ratio = (ratio * U256::from_limbs([9305304367709015974, 3584323654723342297, 0, 0])) >> 128
     }
     if !(abs_tick & U256_65536).is_zero() {
-        ratio = (ratio * U256::from_str("0x9aa508b5b7a84e1c677de54f3e99bc9")?) >> 128
+        ratio = (ratio * U256::from_limbs([14301143598189091785, 696457651847595233, 0, 0])) >> 128
     }
     if !(abs_tick & U256_131072).is_zero() {
-        ratio = (ratio * U256::from_str("0x5d6af8dedb81196699c329225ee604")?) >> 128
+        ratio = (ratio * U256::from_limbs([7393154844743099908, 26294789957452057, 0, 0])) >> 128
     }
     if !(abs_tick & U256_262144).is_zero() {
-        ratio = (ratio * U256::from_str("0x2216e584f5fa1ea926041bedfe98")?) >> 128
+        ratio = (ratio * U256::from_limbs([2209338891292245656, 37481735321082, 0, 0])) >> 128
     }
     if !(abs_tick & U256_524288).is_zero() {
-        ratio = (ratio * U256::from_str("0x48a170391f7dc42444e8fa2")?) >> 128
+        ratio = (ratio * U256::from_limbs([10518117631919034274, 76158723, 0, 0])) >> 128
     }
 
     if tick > 0 {
@@ -231,7 +230,7 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
 mod test {
     use super::*;
     use alloy::primitives::U256;
-    use std::ops::Sub;
+    use std::{ops::Sub, str::FromStr};
 
     #[test]
     fn test_get_sqrt_ratio_at_tick_bounds() {
