@@ -41,8 +41,3 @@ const U256_262144: U256 = U256::from_limbs([262144, 0, 0, 0]);
 const U256_524288: U256 = U256::from_limbs([524288, 0, 0, 0]);
 
 const U256_MAX_TICK: U256 = U256::from_limbs([887272, 0, 0, 0]);
-const U128_MAX: U256 = U256::from_limbs([u64::MAX, u64::MAX, 0, 0]);
-const U64_MAX: U256 = U256::from_limbs([u64::MAX, 0, 0, 0]);
-const U32_MAX: U256 = U256::from_limbs([u32::MAX as u64, 0, 0, 0]);
-const U16_MAX: U256 = U256::from_limbs([u16::MAX as u64, 0, 0, 0]);
-const U8_MAX: U256 = U256::from_limbs([u8::MAX as u64, 0, 0, 0]);

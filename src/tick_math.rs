@@ -229,7 +229,6 @@ pub fn get_tick_at_sqrt_ratio(sqrt_price_x_96: U256) -> Result<i32, UniswapV3Mat
 #[cfg(test)]
 mod test {
     use super::*;
-    use alloy::primitives::U256;
     use std::{ops::Sub, str::FromStr};
 
     #[test]
