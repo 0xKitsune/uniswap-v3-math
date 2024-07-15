@@ -1,13 +1,8 @@
 use std::ops::{Add, BitAnd, BitOrAssign, BitXor, Div, Mul, MulAssign};
 
-use crate::{error::UniswapV3MathError, U256_1};
-// use alloy_primitives::utils::ParseUnits::U256;
+use alloy::primitives::U256;
 
-use alloy::primitives::{Uint, U256};
-
-pub const ONE: Uint<256, 4> = Uint::<256, 4>::from_limbs([1, 0, 0, 0]);
-pub const TWO: Uint<256, 4> = Uint::<256, 4>::from_limbs([2, 0, 0, 0]);
-pub const THREE: Uint<256, 4> = Uint::<256, 4>::from_limbs([3, 0, 0, 0]);
+use crate::{error::UniswapV3MathError, U256_1, U256_2, U256_3};
 
 // returns (uint256 result)
 pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV3MathError> {
@@ -81,24 +76,24 @@ pub fn mul_div(a: U256, b: U256, mut denominator: U256) -> Result<U256, UniswapV
     // Now that denominator is an odd number, it has an inverse
     // modulo 2**256 such that denominator * inv = 1 mod 2**256.
     // Compute the inverse by starting with a seed that is correct
-    // correct for four bits. That is, denominator * inv = 1 mod 2**4
+    // for four bits. That is, denominator * inv = 1 mod 2**4
 
-    let mut inv = THREE.mul(denominator).bitxor(TWO);
+    let mut inv = U256_3.mul(denominator).bitxor(U256_2);
 
     // Now use Newton-Raphson iteration to improve the precision.
     // Thanks to Hensel's lifting lemma, this also works in modular
     // arithmetic, doubling the correct bits in each step.
 
-    inv.mul_assign(TWO - denominator * inv); // inverse mod 2**8
-    inv.mul_assign(TWO - denominator * inv); // inverse mod 2**16
-    inv.mul_assign(TWO - denominator * inv); // inverse mod 2**32
-    inv.mul_assign(TWO - denominator * inv); // inverse mod 2**64
-    inv.mul_assign(TWO - denominator * inv); // inverse mod 2**128
-    inv.mul_assign(TWO - denominator * inv); // inverse mod 2**256
+    inv.mul_assign(U256_2 - denominator * inv); // inverse mod 2**8
+    inv.mul_assign(U256_2 - denominator * inv); // inverse mod 2**16
+    inv.mul_assign(U256_2 - denominator * inv); // inverse mod 2**32
+    inv.mul_assign(U256_2 - denominator * inv); // inverse mod 2**64
+    inv.mul_assign(U256_2 - denominator * inv); // inverse mod 2**128
+    inv.mul_assign(U256_2 - denominator * inv); // inverse mod 2**256
 
     // Because the division is now exact we can divide by multiplying
     // with the modular inverse of denominator. This will give us the
-    // correct result modulo 2**256. Since the precoditions guarantee
+    // correct result modulo 2**256. Since the preconditions guarantee
     // that the outcome is less than 2**256, this is the final result.
     // We don't need to compute the high bits of the result and prod1
     // is no longer required.
@@ -154,7 +149,6 @@ mod tests {
 
 #[cfg(test)]
 mod test {
-
     use std::ops::{Div, Mul, Sub};
 
     use alloy::primitives::U256;
