@@ -11,7 +11,7 @@ keywords = ["uniswapV3", "math"]
 exclude = ["target/*", ".github/*", ".gitignore", "Uniswap/*"]
 
 [dependencies]
-alloy = { version = "0.1", features = ["contract", "providers"] }
+alloy = { version = "0.3", features = ["contract", "providers"] }
 
-eyre = "0.6.12"
-thiserror = "1.0.61"
+eyre = "0.6"
+thiserror = "1.0"
