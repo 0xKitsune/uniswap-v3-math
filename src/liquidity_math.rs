@@ -211,6 +211,8 @@ mod test {
         let in_between = get_sqrt_ratio_at_tick(195574).unwrap();
         let higher = get_sqrt_ratio_at_tick(200000).unwrap(); 
 
+        // Expected amounts computed with: https://github.com/Uniswap/v3-periphery/blob/main/contracts/libraries/LiquidityAmounts.sol
+
         // scenario: tick < range.low
         let liquidity = get_liquidity_for_amounts(lower, range_low, range_high, amount0, amount1).unwrap();
         assert_eq!(liquidity, 29404010462500336572_u128);
