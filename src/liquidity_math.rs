@@ -5,46 +5,41 @@ use crate::{
 };
 use alloy::primitives::U256;
 
-// Downcasts U256 to u128
-fn to_u128(x: U256) -> Result<u128, UniswapV3MathError> {
-    x.to_string().parse().map_err(|_| UniswapV3MathError::SafeCastToU128Overflow)
-}
-
 // Computes the amount of liquidity received for a given amount of token0 and price range. Returns (uint128 liquidity)
 pub fn get_liquidity_for_amount0(
-    mut sqrt_pa: U256,
-    mut sqrt_pb: U256,
+    sqrt_pa: U256,
+    sqrt_pb: U256,
     amount0: U256,
 ) -> Result<u128, UniswapV3MathError> {
-    if sqrt_pa > sqrt_pb { std::mem::swap(&mut sqrt_pa, &mut sqrt_pb) };
+    let diff = if sqrt_pa > sqrt_pb { sqrt_pa - sqrt_pb } else { sqrt_pb - sqrt_pa };
     let intermediate = mul_div(sqrt_pa, sqrt_pb, Q96)?;
-    let liquidity = mul_div(amount0, intermediate, sqrt_pb - sqrt_pa)?;
+    let liquidity = mul_div(amount0, intermediate, diff)?;
 
-    to_u128(liquidity)
+    Ok(liquidity.to::<u128>())
 }
 
 // Computes the amount of liquidity received for a given amount of token1 and price range. Returns (uint128 liquidity)
 pub fn get_liquidity_for_amount1(
-    mut sqrt_pa: U256,
-    mut sqrt_pb: U256,
+    sqrt_pa: U256,
+    sqrt_pb: U256,
     amount1: U256,
 ) -> Result<u128, UniswapV3MathError> {
-    if sqrt_pa > sqrt_pb { std::mem::swap(&mut sqrt_pa, &mut sqrt_pb) };
-    let liquidity = mul_div(amount1, Q96, sqrt_pb - sqrt_pa)?;
+    let diff = if sqrt_pa > sqrt_pb { sqrt_pa - sqrt_pb } else { sqrt_pb - sqrt_pa };
+    let liquidity = mul_div(amount1, Q96, diff)?;
 
-    to_u128(liquidity)
+    Ok(liquidity.to::<u128>())
 }
 
 // Computes the maximum amount of liquidity received for a given amount of token0, token1, the current
 // pool prices and the prices at the tick boundaries. Returns (uint128 liquidity)
 pub fn get_liquidity_for_amounts(
     sqrt_p: U256,
-    mut sqrt_pa: U256,
-    mut sqrt_pb: U256,
+    sqrt_pa: U256,
+    sqrt_pb: U256,
     amount0: U256,
     amount1: U256,
 ) -> Result<u128, UniswapV3MathError> {
-    if sqrt_pa > sqrt_pb { std::mem::swap(&mut sqrt_pa, &mut sqrt_pb) };
+    let (sqrt_pa, sqrt_pb) = if sqrt_pa > sqrt_pb { (sqrt_pb, sqrt_pa) } else { (sqrt_pa, sqrt_pb) };
 
     if sqrt_p <= sqrt_pa {
         get_liquidity_for_amount0(sqrt_pa, sqrt_pb, amount0)
@@ -60,16 +55,16 @@ pub fn get_liquidity_for_amounts(
 
 // Computes the amount of token0 for a given amount of liquidity and a price range. Returns (uint256 amount0)
 pub fn get_amount0_for_liquidity(
-    mut sqrt_pa: U256,
-    mut sqrt_pb: U256,
+    sqrt_pa: U256,
+    sqrt_pb: U256,
     liquidity: u128
 ) -> Result<U256, UniswapV3MathError> {
-    if sqrt_pa > sqrt_pb { std::mem::swap(&mut sqrt_pa, &mut sqrt_pb) };
-    if sqrt_pa.is_zero() { return Err(UniswapV3MathError::SqrtPriceIsZero) };
+    let diff = if sqrt_pa > sqrt_pb { sqrt_pa - sqrt_pb } else { sqrt_pb - sqrt_pa };
+    if sqrt_pa.is_zero() || sqrt_pb.is_zero() { return Err(UniswapV3MathError::SqrtPriceIsZero) };
 
     let numerator = mul_div(
         U256::from(liquidity) << FIXED_POINT_96_RESOLUTION,
-        sqrt_pb - sqrt_pa,
+        diff,
         sqrt_pb
     )?;
 
@@ -78,24 +73,24 @@ pub fn get_amount0_for_liquidity(
 
 // Computes the amount of token1 for a given amount of liquidity and a price range. Returns (uint256 amount1)
 pub fn get_amount1_for_liquidity(
-    mut sqrt_pa: U256,
-    mut sqrt_pb: U256,
+    sqrt_pa: U256,
+    sqrt_pb: U256,
     liquidity: u128
 ) -> Result<U256, UniswapV3MathError> {
-    if sqrt_pa > sqrt_pb { std::mem::swap(&mut sqrt_pa, &mut sqrt_pb) };
+    let diff = if sqrt_pa > sqrt_pb { sqrt_pa - sqrt_pb } else { sqrt_pb - sqrt_pa };
 
-    mul_div(U256::from(liquidity), sqrt_pb - sqrt_pa, Q96)
+    mul_div(U256::from(liquidity), diff, Q96)
 }
 
 // Computes the token0 and token1 value for a given amount of liquidity, the current
 // pool prices and the prices at the tick boundaries. Returns (uint256 amount0, uint156 amount1)
 pub fn get_amounts_for_liquidity(
     sqrt_p: U256,
-    mut sqrt_pa: U256,
-    mut sqrt_pb: U256,
+    sqrt_pa: U256,
+    sqrt_pb: U256,
     liquidity: u128
 ) -> Result<(U256, U256), UniswapV3MathError> {
-    if sqrt_pa > sqrt_pb { std::mem::swap(&mut sqrt_pa, &mut sqrt_pb) };
+    let (sqrt_pa, sqrt_pb) = if sqrt_pa > sqrt_pb { (sqrt_pb, sqrt_pa) } else { (sqrt_pa, sqrt_pb) };
 
     let (amount0, amount1) = if sqrt_p <= sqrt_pa {
         (get_amount0_for_liquidity(sqrt_pa, sqrt_pb, liquidity)?, U256::ZERO)
