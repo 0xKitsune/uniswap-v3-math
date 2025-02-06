@@ -1,112 +1,10 @@
-use crate::{
-    error::UniswapV3MathError,
-    full_math::mul_div,
-    sqrt_price_math::{FIXED_POINT_96_RESOLUTION, Q96}
-};
-use alloy::primitives::U256;
+pub use liquidity_amounts::*;
 
-// Computes the amount of liquidity received for a given amount of token0 and price range. Returns (uint128 liquidity)
-pub fn get_liquidity_for_amount0(
-    sqrt_pa: U256,
-    sqrt_pb: U256,
-    amount0: U256,
-) -> Result<u128, UniswapV3MathError> {
-    let diff = if sqrt_pa > sqrt_pb { sqrt_pa - sqrt_pb } else { sqrt_pb - sqrt_pa };
-    let intermediate = mul_div(sqrt_pa, sqrt_pb, Q96)?;
-    let liquidity = mul_div(amount0, intermediate, diff)?;
+use crate::error::UniswapV3MathError;
 
-    Ok(liquidity.to::<u128>())
-}
-
-// Computes the amount of liquidity received for a given amount of token1 and price range. Returns (uint128 liquidity)
-pub fn get_liquidity_for_amount1(
-    sqrt_pa: U256,
-    sqrt_pb: U256,
-    amount1: U256,
-) -> Result<u128, UniswapV3MathError> {
-    let diff = if sqrt_pa > sqrt_pb { sqrt_pa - sqrt_pb } else { sqrt_pb - sqrt_pa };
-    let liquidity = mul_div(amount1, Q96, diff)?;
-
-    Ok(liquidity.to::<u128>())
-}
-
-// Computes the maximum amount of liquidity received for a given amount of token0, token1, the current
-// pool prices and the prices at the tick boundaries. Returns (uint128 liquidity)
-pub fn get_liquidity_for_amounts(
-    sqrt_p: U256,
-    sqrt_pa: U256,
-    sqrt_pb: U256,
-    amount0: U256,
-    amount1: U256,
-) -> Result<u128, UniswapV3MathError> {
-    let (sqrt_pa, sqrt_pb) = if sqrt_pa > sqrt_pb { (sqrt_pb, sqrt_pa) } else { (sqrt_pa, sqrt_pb) };
-
-    if sqrt_p <= sqrt_pa {
-        get_liquidity_for_amount0(sqrt_pa, sqrt_pb, amount0)
-    } else if sqrt_p < sqrt_pb {
-        let liq0 = get_liquidity_for_amount0(sqrt_p, sqrt_pb, amount0)?;
-        let liq1 = get_liquidity_for_amount1(sqrt_pa, sqrt_p, amount1)?;
-
-        Ok(std::cmp::min(liq0, liq1))
-    } else {
-        get_liquidity_for_amount1(sqrt_pa, sqrt_pb, amount1)
-    }
-}
-
-// Computes the amount of token0 for a given amount of liquidity and a price range. Returns (uint256 amount0)
-pub fn get_amount0_for_liquidity(
-    sqrt_pa: U256,
-    sqrt_pb: U256,
-    liquidity: u128
-) -> Result<U256, UniswapV3MathError> {
-    let diff = if sqrt_pa > sqrt_pb { sqrt_pa - sqrt_pb } else { sqrt_pb - sqrt_pa };
-    if sqrt_pa.is_zero() || sqrt_pb.is_zero() { return Err(UniswapV3MathError::SqrtPriceIsZero) };
-
-    let numerator = mul_div(
-        U256::from(liquidity) << FIXED_POINT_96_RESOLUTION,
-        diff,
-        sqrt_pb
-    )?;
-
-    Ok(numerator / sqrt_pa)
-}
-
-// Computes the amount of token1 for a given amount of liquidity and a price range. Returns (uint256 amount1)
-pub fn get_amount1_for_liquidity(
-    sqrt_pa: U256,
-    sqrt_pb: U256,
-    liquidity: u128
-) -> Result<U256, UniswapV3MathError> {
-    let diff = if sqrt_pa > sqrt_pb { sqrt_pa - sqrt_pb } else { sqrt_pb - sqrt_pa };
-
-    mul_div(U256::from(liquidity), diff, Q96)
-}
-
-// Computes the token0 and token1 value for a given amount of liquidity, the current
-// pool prices and the prices at the tick boundaries. Returns (uint256 amount0, uint156 amount1)
-pub fn get_amounts_for_liquidity(
-    sqrt_p: U256,
-    sqrt_pa: U256,
-    sqrt_pb: U256,
-    liquidity: u128
-) -> Result<(U256, U256), UniswapV3MathError> {
-    let (sqrt_pa, sqrt_pb) = if sqrt_pa > sqrt_pb { (sqrt_pb, sqrt_pa) } else { (sqrt_pa, sqrt_pb) };
-
-    let (amount0, amount1) = if sqrt_p <= sqrt_pa {
-        (get_amount0_for_liquidity(sqrt_pa, sqrt_pb, liquidity)?, U256::ZERO)
-    } else if sqrt_p < sqrt_pb {
-        (
-            get_amount0_for_liquidity(sqrt_p, sqrt_pb, liquidity)?,
-            get_amount1_for_liquidity(sqrt_pa, sqrt_p, liquidity)?
-        )
-    } else {
-        (U256::ZERO, get_amount1_for_liquidity(sqrt_pa, sqrt_pb, liquidity)?)
-    };
-    
-    Ok((amount0, amount1))
-}
-
-// returns (uint128 z)
+/// Add a signed liquidity delta to liquidity and revert if it overflows or underflows. Returns (uint128 z)
+/// - x: The liquidity before change
+/// - y: The delta by which liquidity should be changed
 pub fn add_delta(x: u128, y: i128) -> Result<u128, UniswapV3MathError> {
     if y < 0 {
         let z = x.overflowing_sub(-y as u128);
@@ -126,9 +24,182 @@ pub fn add_delta(x: u128, y: i128) -> Result<u128, UniswapV3MathError> {
     }
 }
 
+/// Provides functions for computing liquidity amounts from token amounts and prices
+mod liquidity_amounts {
+    use crate::{
+        error::UniswapV3MathError,
+        full_math::mul_div,
+        sqrt_price_math::{FIXED_POINT_96_RESOLUTION, Q96}
+    };
+    use alloy::primitives::U256;
+
+    /// Computes the amount of liquidity received for a given amount of token0 and price range. Returns (uint128 liquidity).
+    /// Calculates amount0 * (sqrt(upper) * sqrt(lower)) / (sqrt(upper) - sqrt(lower))
+    /// 
+    /// - sqrt_ratio_a_x96: A sqrt price representing the first tick boundary
+    /// - sqrt_ratio_b_x96: A sqrt price representing the second tick boundary
+    /// - amount0: The amount0 being sent in
+    pub fn get_liquidity_for_amount0(
+        sqrt_ratio_a_x96: U256,
+        sqrt_ratio_b_x96: U256,
+        amount0: U256,
+    ) -> Result<u128, UniswapV3MathError> {
+        let diff = if sqrt_ratio_a_x96 > sqrt_ratio_b_x96 {
+            sqrt_ratio_a_x96 - sqrt_ratio_b_x96
+        } else {
+            sqrt_ratio_b_x96 - sqrt_ratio_a_x96
+        };
+        let intermediate = mul_div(sqrt_ratio_a_x96, sqrt_ratio_b_x96, Q96)?;
+        let liquidity = mul_div(amount0, intermediate, diff)?;
+
+        Ok(liquidity.to::<u128>())
+    }
+
+    /// Computes the amount of liquidity received for a given amount of token1 and price range. Returns (uint128 liquidity).
+    /// Calculates amount1 / (sqrt(upper) - sqrt(lower)).
+    /// 
+    /// - sqrt_ratio_a_x96: A sqrt price representing the first tick boundary
+    /// - sqrt_ratio_b_x96: A sqrt price representing the second tick boundary
+    /// - amount1: The amount1 being sent in
+    pub fn get_liquidity_for_amount1(
+        sqrt_ratio_a_x96: U256,
+        sqrt_ratio_b_x96: U256,
+        amount1: U256,
+    ) -> Result<u128, UniswapV3MathError> {
+        let diff = if sqrt_ratio_a_x96 > sqrt_ratio_b_x96 {
+            sqrt_ratio_a_x96 - sqrt_ratio_b_x96
+        } else {
+            sqrt_ratio_b_x96 - sqrt_ratio_a_x96
+        };
+        let liquidity = mul_div(amount1, Q96, diff)?;
+
+        Ok(liquidity.to::<u128>())
+    }
+
+    /// Computes the maximum amount of liquidity received for a given amount of token0, token1, the current
+    /// pool prices and the prices at the tick boundaries. Returns (uint128 liquidity).
+    /// 
+    /// - sqrt_ratio_x96: A sqrt price representing the current pool prices
+    /// - sqrt_ratio_a_x96: A sqrt price representing the first tick boundary
+    /// - sqrt_ratio_b_x96: A sqrt price representing the second tick boundary
+    /// - amount0: The amount of token0 being sent in
+    /// - amount1: The amount of token1 being sent in
+    pub fn get_liquidity_for_amounts(
+        sqrt_ratio_x96: U256,
+        sqrt_ratio_a_x96: U256,
+        sqrt_ratio_b_x96: U256,
+        amount0: U256,
+        amount1: U256,
+    ) -> Result<u128, UniswapV3MathError> {
+        let (sqrt_ratio_a_x96, sqrt_ratio_b_x96) = if sqrt_ratio_a_x96 > sqrt_ratio_b_x96 {
+            (sqrt_ratio_b_x96, sqrt_ratio_a_x96)
+        } else {
+            (sqrt_ratio_a_x96, sqrt_ratio_b_x96)
+        };
+
+        if sqrt_ratio_x96 <= sqrt_ratio_a_x96 {
+            get_liquidity_for_amount0(sqrt_ratio_a_x96, sqrt_ratio_b_x96, amount0)
+        } else if sqrt_ratio_x96 < sqrt_ratio_b_x96 {
+            let liq0 = get_liquidity_for_amount0(sqrt_ratio_x96, sqrt_ratio_b_x96, amount0)?;
+            let liq1 = get_liquidity_for_amount1(sqrt_ratio_a_x96, sqrt_ratio_x96, amount1)?;
+
+            Ok(std::cmp::min(liq0, liq1))
+        } else {
+            get_liquidity_for_amount1(sqrt_ratio_a_x96, sqrt_ratio_b_x96, amount1)
+        }
+    }
+
+    /// Computes the amount of token0 for a given amount of liquidity and a price range. Returns (uint256 amount0).
+    /// 
+    /// - sqrt_ratio_a_x96: A sqrt price representing the first tick boundary
+    /// - sqrt_ratio_b_x96: A sqrt price representing the second tick boundary
+    /// - liquidity: The liquidity being valued
+    pub fn get_amount0_for_liquidity(
+        sqrt_ratio_a_x96: U256,
+        sqrt_ratio_b_x96: U256,
+        liquidity: u128
+    ) -> Result<U256, UniswapV3MathError> {
+        if sqrt_ratio_a_x96.is_zero() || sqrt_ratio_b_x96.is_zero() { return Err(UniswapV3MathError::SqrtPriceIsZero) };
+
+        let diff = if sqrt_ratio_a_x96 > sqrt_ratio_b_x96 {
+            sqrt_ratio_a_x96 - sqrt_ratio_b_x96
+        } else {
+            sqrt_ratio_b_x96 - sqrt_ratio_a_x96
+        };
+
+        let numerator = mul_div(
+            U256::from(liquidity) << FIXED_POINT_96_RESOLUTION,
+            diff,
+            sqrt_ratio_b_x96
+        )?;
+
+        Ok(numerator / sqrt_ratio_a_x96)
+    }
+
+    /// Computes the amount of token1 for a given amount of liquidity and a price range. Returns (uint256 amount1).
+    /// 
+    /// - sqrt_ratio_a_x96: A sqrt price representing the first tick boundary
+    /// - sqrt_ratio_b_x96: A sqrt price representing the second tick boundary
+    /// - liquidity: The liquidity being valued
+    pub fn get_amount1_for_liquidity(
+        sqrt_ratio_a_x96: U256,
+        sqrt_ratio_b_x96: U256,
+        liquidity: u128
+    ) -> Result<U256, UniswapV3MathError> {
+        let diff = if sqrt_ratio_a_x96 > sqrt_ratio_b_x96 {
+            sqrt_ratio_a_x96 - sqrt_ratio_b_x96
+        } else {
+            sqrt_ratio_b_x96 - sqrt_ratio_a_x96
+        };
+
+        mul_div(U256::from(liquidity), diff, Q96)
+    }
+
+    /// Computes the token0 and token1 value for a given amount of liquidity, the current
+    /// pool prices and the prices at the tick boundaries. Returns (uint256 amount0, uint256 amount1).
+    /// 
+    /// - sqrt_ratio_x96: A sqrt price representing the current pool prices
+    /// - sqrt_ratio_a_x96: A sqrt price representing the first tick boundary
+    /// - sqrt_ratio_b_x96: A sqrt price representing the second tick boundary
+    /// - liquidity: The liquidity being valued
+    pub fn get_amounts_for_liquidity(
+        sqrt_ratio_x96: U256,
+        sqrt_ratio_a_x96: U256,
+        sqrt_ratio_b_x96: U256,
+        liquidity: u128
+    ) -> Result<(U256, U256), UniswapV3MathError> {
+        let (sqrt_ratio_a_x96, sqrt_ratio_b_x96) = if sqrt_ratio_a_x96 > sqrt_ratio_b_x96 {
+            (sqrt_ratio_b_x96, sqrt_ratio_a_x96)
+        } else {
+            (sqrt_ratio_a_x96, sqrt_ratio_b_x96)
+        };
+
+        let (amount0, amount1) = if sqrt_ratio_x96 <= sqrt_ratio_a_x96 {
+            (
+                get_amount0_for_liquidity(sqrt_ratio_a_x96, sqrt_ratio_b_x96, liquidity)?,
+                U256::ZERO
+            )
+        } else if sqrt_ratio_x96 < sqrt_ratio_b_x96 {
+            (
+                get_amount0_for_liquidity(sqrt_ratio_x96, sqrt_ratio_b_x96, liquidity)?,
+                get_amount1_for_liquidity(sqrt_ratio_a_x96, sqrt_ratio_x96, liquidity)?
+            )
+        } else {
+            (
+                U256::ZERO,
+                get_amount1_for_liquidity(sqrt_ratio_a_x96, sqrt_ratio_b_x96, liquidity)?
+            )
+        };
+        
+        Ok((amount0, amount1))
+    }
+}
+
 #[cfg(test)]
 mod test {
-    use crate::{liquidity_math::*, tick_math::get_sqrt_ratio_at_tick};
+    use super::*;
+    use crate::tick_math::get_sqrt_ratio_at_tick;
+    use alloy::primitives::U256;
 
     #[test]
     fn test_add_delta() {
