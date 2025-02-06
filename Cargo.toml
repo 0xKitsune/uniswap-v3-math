@@ -1,5 +1,6 @@
 [package]
 name = "uniswap_v3_math"
+rust-version = "1.82"
 version = "0.5.3"
 edition = "2021"
 license = "MIT"
