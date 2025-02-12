@@ -1,4 +1,4 @@
-use alloy::primitives::U256;
+use alloy_primitives::U256;
 
 pub mod bit_math;
 pub mod error;

@@ -1,5 +1,5 @@
 use crate::error::UniswapV3MathError;
-use alloy::primitives::U256;
+use alloy_primitives::U256;
 
 pub fn most_significant_bit(x: U256) -> Result<u8, UniswapV3MathError> {
     if x.is_zero() {
@@ -19,7 +19,7 @@ pub fn least_significant_bit(x: U256) -> Result<u8, UniswapV3MathError> {
 mod test {
     use super::most_significant_bit;
     use crate::{bit_math::least_significant_bit, U256_1};
-    use alloy::primitives::U256;
+    use alloy_primitives::U256;
     use std::str::FromStr;
 
     #[test]

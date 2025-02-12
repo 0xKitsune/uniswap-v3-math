@@ -1,4 +1,4 @@
-use alloy::primitives::ruint::ParseError;
+use alloy_primitives::ruint::ParseError;
 use thiserror::Error;
 
 // TODO: make these errors better, some errors in univ3 libs are just require(condition) without a message.

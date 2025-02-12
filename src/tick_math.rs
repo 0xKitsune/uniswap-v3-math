@@ -1,4 +1,4 @@
-use alloy::primitives::{I256, U256};
+use alloy_primitives::{I256, U256};
 use std::ops::{BitOr, Neg, Shl, Shr};
 
 use crate::{

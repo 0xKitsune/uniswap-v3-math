@@ -1,6 +1,6 @@
 use std::ops::{Add, BitAnd, BitOrAssign, BitXor, Div, Mul, MulAssign};
 
-use alloy::primitives::U256;
+use alloy_primitives::U256;
 
 use crate::{error::UniswapV3MathError, U256_1, U256_2, U256_3};
 
@@ -149,11 +149,9 @@ mod tests {
 
 #[cfg(test)]
 mod test {
-    use std::ops::{Div, Mul, Sub};
-
-    use alloy::primitives::U256;
-
     use crate::U256_1;
+    use alloy_primitives::U256;
+    use std::ops::{Div, Mul, Sub};
 
     use super::mul_div;
 
