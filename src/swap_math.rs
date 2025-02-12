@@ -1,4 +1,4 @@
-use alloy::primitives::{I256, U256};
+use alloy_primitives::{I256, U256};
 
 use crate::{
     error::UniswapV3MathError,
@@ -155,7 +155,7 @@ mod test {
     use crate::sqrt_price_math::{get_next_sqrt_price_from_input, get_next_sqrt_price_from_output};
     use crate::swap_math::compute_swap_step;
     use crate::U256_1;
-    use alloy::primitives::{I256, U256};
+    use alloy_primitives::{I256, U256};
     use std::str::FromStr;
 
     #[allow(unused)]
