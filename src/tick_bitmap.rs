@@ -72,8 +72,8 @@ mod contract {
             let next = if initialized {
                 (compressed
                     - (bit_pos
-                    .overflowing_sub(bit_math::most_significant_bit(masked)?)
-                    .0) as i32)
+                        .overflowing_sub(bit_math::most_significant_bit(masked)?)
+                        .0) as i32)
                     * tick_spacing
             } else {
                 (compressed - bit_pos as i32) * tick_spacing
@@ -112,8 +112,8 @@ mod contract {
                 (compressed
                     + 1
                     + (bit_math::least_significant_bit(masked)?
-                    .overflowing_sub(bit_pos)
-                    .0) as i32)
+                        .overflowing_sub(bit_pos)
+                        .0) as i32)
                     * tick_spacing
             } else {
                 (compressed + 1 + ((0xFF - bit_pos) as i32)) * tick_spacing
@@ -123,8 +123,6 @@ mod contract {
         }
     }
 }
-
-
 
 //Flips the initialized state for a given tick from false to true, or vice versa
 pub fn flip_tick(
