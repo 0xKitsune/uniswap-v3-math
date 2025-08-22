@@ -1,4 +1,4 @@
-use std::ops::{Add, BitAnd, BitOrAssign, BitXor, Div, Mul, MulAssign};
+use std::ops::{Add, BitOrAssign, Div, Mul, MulAssign};
 
 use alloy_primitives::U256;
 

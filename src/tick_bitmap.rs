@@ -51,7 +51,7 @@ mod contract {
                     .call()
                     .await
                 {
-                    Ok(word) => U256::from(word._0),
+                    Ok(word) => U256::from(word),
                     Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
                 }
             } else {
@@ -60,7 +60,7 @@ mod contract {
                     .call()
                     .await
                 {
-                    Ok(word) => U256::from(word._0),
+                    Ok(word) => U256::from(word),
                     Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
                 }
             };
@@ -91,7 +91,7 @@ mod contract {
                     .call()
                     .await
                 {
-                    Ok(word) => U256::from(word._0),
+                    Ok(word) => U256::from(word),
                     Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
                 }
             } else {
@@ -100,7 +100,7 @@ mod contract {
                     .call()
                     .await
                 {
-                    Ok(word) => U256::from(word._0),
+                    Ok(word) => U256::from(word),
                     Err(err) => return Err(UniswapV3MathError::MiddlewareError(err.to_string())),
                 }
             };

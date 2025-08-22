@@ -281,10 +281,7 @@ mod test {
 
         assert!(sqrt_p < price_target);
         //TODO:FIXME: failing
-        println!(
-            "sqrtp: {:?}, price_after_whole output amount: {:?}",
-            sqrt_p, price_after_whole_output_amount
-        );
+        println!("sqrtp: {sqrt_p:?}, price_after_whole output amount: {price_after_whole_output_amount:?}");
         assert_eq!(sqrt_p, price_after_whole_output_amount);
 
         //------------------------------------------------------------
